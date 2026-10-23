@@ -5,15 +5,16 @@ Resources:
     https://nbviewer.org/github/drdarshan/ssgetpy/blob/master/demo.ipynb
 """
 
-from queue import Queue
-
-import numpy  as np
 import os
-import scipy
 import tarfile
-import ssgetpy
+from queue import Queue
 from typing import Any
 from warnings import warn
+
+import numpy as np
+import scipy
+import ssgetpy
+
 from ..MatGetter import MatGetter
 from ..util.SparseFormat import SparseFormat
 

@@ -6,6 +6,7 @@ Resources:
 """
 from enum import Enum
 
+
 # class syntax
 class SparseFormat(Enum):
     COO = 1
