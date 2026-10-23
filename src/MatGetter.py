@@ -20,7 +20,7 @@ class MatGetter(ABC):
     @abstractmethod
     def get(
         self,
-        kwargs: dict[str, Any],
+        kwargs: dict[str, Any] | None = None,
     ) -> tuple[scipy.sparse.sparray | np.ndarray, dict] | None:
         """Get a matrix based on its key word arguments
 
@@ -28,5 +28,6 @@ class MatGetter(ABC):
             kwargs (dict): The key word arguments for generating the matrix
 
         Returns:
-             mat (Union[scipy.spare.sparray, np.ndarray]): The matrix gotten
+             mat ([scipy.sparse.sparray | np.ndarray, dict] | None): The matrix
+             gotten
         """
