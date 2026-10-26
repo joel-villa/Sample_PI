@@ -81,10 +81,62 @@ class SSGetter(MatGetter):
 
         self.mat_queue = Queue()
 
+    def load_mat(
+        self,
+        ss_matrix: ssgetpy.matrix.Matrix,
+    ) -> scipy.sparse.sparray | None:
+
+        ss_matrix.download()  # Download the matrix
+
+        # Get the local path of the .tar.gz file
+        path_tuple = ss_matrix.localpath() # This returns a tuple (two identical paths)
+        tar_path = path_tuple[0]   # Use the first path (both are the same)
+
+        # Extract the .tar.gz file to get the matrix file inside
+        if tar_path.endswith('.tar.gz'):
+            with tarfile.open(tar_path, 'r:gz') as tar:
+                # Extract files in the same folder as the .tar.gz file
+                extract_dir = os.path.dirname(tar_path)
+                tar.extractall(path=extract_dir)  # Extract to the same folder
+
+            # After extraction, find the matrix file (.mtx) in the extracted files
+            matrix_file = None
+            extract_dir = os.path.join(extract_dir, ss_matrix.name)
+            for extracted_file in os.listdir(extract_dir):
+                if extracted_file.endswith('.mtx'):
+                    matrix_file = extracted_file
+                    break
+
+            if matrix_file is None:
+                raise FileNotFoundError(f"No .mtx file found in {extract_dir}")
+
+            # Full path to the extracted matrix file
+            extracted_path = os.path.join(extract_dir, matrix_file)
+
+            # Now, read the extracted matrix file using mmread and return it in coo
+            return scipy.io.mmread(extracted_path)
+        else:
+            warn(f"Matrix {ss_matrix.name} is not in .tar.gz format.")
+        return None
+
+    def check_mat(
+        self,
+        matrix: scipy.sparse.sparray,
+    ) -> None:
+        """Checks the metadata requested matches the matrix given
+
+        Args:
+            matrix (scipy.sparse.sparray): The matrix to check
+        """
+        if matrix.nnz < self.nzbounds[0] | matrix.nnz > self.nzbounds[1]:
+            warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
+        #TODO: rest of error checking
+        raise NotImplementedError
+
     def get(
         self,
         kwargs: dict[str, Any] | None = None,
-    ) -> tuple[scipy.sparse.sparray | np.ndarray, dict] | None:
+    ) -> scipy.sparse.sparray | np.ndarray | None:
         """Get a matrix based on its key word arguments
 
         Args:
@@ -130,59 +182,20 @@ class SSGetter(MatGetter):
         if matrix is None:
             return None
 
-        if matrix.nnz < self.nzbounds[0] | matrix.nnz > self.nzbounds[1]:
-            warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
-
-
         match self.format:
             case SparseFormat.COO:
-                return matrix.tocoo()
+                matrix = matrix.tocoo()
             case SparseFormat.CSC:
-                return matrix.tocsc()
+                matrix = matrix.tocsc()
             case SparseFormat.CSR:
-                return matrix.tocsr()
+                matrix = matrix.tocsr()
             case _:
                 warn(f"Unexpected sparse format: {self.format}")
                 return None
 
+        self.check_mat(matrix)
 
-    def load_mat(
-        self,
-        ss_matrix: ssgetpy.matrix.Matrix,
-    ) -> scipy.sparse.sparray | None:
-
-        ss_matrix.download()  # Download the matrix
-
-        # Get the local path of the .tar.gz file
-        path_tuple = ss_matrix.localpath() # This returns a tuple (two identical paths)
-        tar_path = path_tuple[0]   # Use the first path (both are the same)
-
-        # Extract the .tar.gz file to get the matrix file inside
-        if tar_path.endswith('.tar.gz'):
-            with tarfile.open(tar_path, 'r:gz') as tar:
-                # Extract files in the same folder as the .tar.gz file
-                extract_dir = os.path.dirname(tar_path)
-                tar.extractall(path=extract_dir)  # Extract to the same folder
-
-            # After extraction, find the matrix file (.mtx) in the extracted files
-            matrix_file = None
-            extract_dir = os.path.join(extract_dir, ss_matrix.name)
-            for extracted_file in os.listdir(extract_dir):
-                if extracted_file.endswith('.mtx'):
-                    matrix_file = extracted_file
-                    break
-
-            if matrix_file is None:
-                raise FileNotFoundError(f"No .mtx file found in {extract_dir}")
-
-            # Full path to the extracted matrix file
-            extracted_path = os.path.join(extract_dir, matrix_file)
-
-            # Now, read the extracted matrix file using mmread and return it in coo
-            return scipy.io.mmread(extracted_path)
-        else:
-            warn(f"Matrix {ss_matrix.name} is not in .tar.gz format.")
-        return None
+        return matrix
 
 def main() -> None:
     ss_getter = SSGetter(
