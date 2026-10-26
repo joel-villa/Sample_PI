@@ -5,7 +5,9 @@ Resources:
     https://nbviewer.org/github/drdarshan/ssgetpy/blob/master/demo.ipynb
 """
 
+import json
 import os
+from pathlib import Path
 import tarfile
 from queue import Queue
 from typing import Any
@@ -14,6 +16,8 @@ from warnings import warn
 import numpy as np
 import scipy
 import ssgetpy
+
+from src.util.constants import UTF_8_STR
 
 from ..MatGetter import MatGetter
 from ..util.SparseFormat import SparseFormat
@@ -24,8 +28,8 @@ class SSGetter(MatGetter):
     A wrapper for the ssgetpy library
     """
 
+    TOP_MAG_PATH = Path('data/top_row_mags.json')
     format: SparseFormat
-
     nzbounds: tuple[int, int]
     limit: int | None
     rowbounds: tuple[int, int] | None
@@ -236,10 +240,21 @@ class SSGetter(MatGetter):
 
         return ss_result[1]
 
-    def get_preprocessed(
+    def rescale_matrix(
         self,
-        mat_name: str | None,
-    ) -> tuple[scipy.sparse.sparray, float] | None:
+        matrix:scipy.sparse.sparray,
+        max_row_mag: float,
+    ) -> scipy.sparse.sparray:
+        matrix = matrix / max_row_mag
+
+        matrix.eliminate_zeros()
+
+        return matrix
+
+    def preprocess(
+        self,
+        matrix: scipy.sparse.sparray | np.ndarray,
+    ) -> tuple[scipy.sparse.sparray | np.ndarray, float]:
         """Get A scaled by a factor of 1/max_i(||a_i||)
 
         Args:
@@ -247,13 +262,10 @@ class SSGetter(MatGetter):
 
         Returns:
             matrix (scipy.sparse): the matrix in sparse format
-            max_row_magnitude (float): the scaling factor
+            scale_factor (float): the scaling factor
         """
-        ss_result = self.ssget(mat_name=mat_name)
-        if ss_result is None:
-            return None
-        mat_name, matrix = ss_result
-
+        if type(matrix) is not scipy.sparse.sparray:
+            raise TypeError(f"Expecting sparse array, not {type(matrix)}")
         if matrix.data.dtype not in {np.float32, np.float64}:
             if matrix.data.dtype not in {np.int32, np.int64}:
                 raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
@@ -262,14 +274,58 @@ class SSGetter(MatGetter):
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError(f"Given non-square matrix: A.shape = {matrix.shape}")
 
-        max_row_magnitude = get_sorted_row_norms(mat_name, rescale=False)[0]  # TODO
+        row_mags = np.asarray(scipy.sparse.norm(matrix, ord=ord, axis=1))
+        top_row_mag = max(row_mags)
 
         # Rescale A
-        matrix = matrix / max_row_magnitude
+        matrix = self.rescale_matrix(
+            matrix=matrix,
+            max_row_mag=top_row_mag,
+        )
 
-        matrix.eliminate_zeros()
+        return matrix, top_row_mag
 
-        return matrix, max_row_magnitude
+    def get_preprocessed(
+        self,
+        mat_name: str | None,
+    ) -> scipy.sparse.sparray | None:
+        """Get A scaled by a factor of 1/max_i(||a_i||)
+
+        Args:
+            mat_name (str): the name of the suite-spasrse matrix
+
+        Returns:
+            matrix (scipy.sparse.sparray): the matrix in sparse format
+
+        Resources:
+            Json encoding API:
+                https://stackoverflow.com/questions/46408051/python-json-load-set-encoding-to-utf-8
+        """
+        ss_result = self.ssget(mat_name=mat_name)
+        if ss_result is None:
+            return None
+        mat_name, matrix = ss_result
+
+        top_mag_dict = None
+        with open(self.TOP_MAG_PATH, 'r', encoding=UTF_8_STR) as json_file:
+            top_mag_dict = json.load(json_file)
+
+        top_mag = top_mag_dict.get(mat_name)
+
+        if top_mag is None:
+            # Not yet calculated -> calculate + save
+            matrix, top_mag = self.preprocess(matrix)
+            top_mag_dict |= {mat_name: top_mag}
+            with open(self.TOP_MAG_PATH, 'w', encoding=UTF_8_STR) as json_file:
+                json.dump(top_mag_dict, json_file, indent=2)
+        else:
+            # Top row magnitude stored, do necessary calculations
+            matrix = self.rescale_matrix(
+                matrix=matrix,
+                max_row_mag=top_mag
+            )
+
+        return matrix
 
 
 def main() -> None:
@@ -278,9 +334,34 @@ def main() -> None:
         format=SparseFormat.CSR,
         nzbounds=(1000, 100000),
     )
-    sparse_mat = ss_getter.get({"name": "494_bus"})
-    print(sparse_mat)
-
+    mats = [
+        "1138_bus",
+        "494_bus",
+        "Harvard500",
+        "bcspwr06",
+        "bcsstk07",
+        "bcsstk08",
+        "bcsstk19",
+        "bcsstk34",
+        "bcsstm07",
+        "blckhole",
+        "cage7",
+        "can_229",
+        "dwt_193",
+        "eris1176",
+        "ex2",
+        "fs_541_1",
+        "gre_1107",
+        "gre_343",
+        "hor_131",
+        "lshp1561",
+        "msc00726",
+        "nasa1824",
+        "nos3",
+        "tomography",
+    ]
+    for mat in mats:
+        matrix = ss_getter.get_preprocessed('494_bus')
 
 if __name__ == "__main__":
     """
