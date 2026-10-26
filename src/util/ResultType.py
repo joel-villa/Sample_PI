@@ -4,4 +4,4 @@ from enum import Enum
 
 
 class ResultType(Enum):
-    ACC_VS_WORK = (1,)
+    ACC_VS_WORK = 1
