@@ -21,13 +21,13 @@ class MatGetter(ABC):
     def get(
         self,
         kwargs: dict[str, Any] | None = None,
-    ) -> tuple[scipy.sparse.sparray | np.ndarray, dict] | None:
+    ) -> scipy.sparse.sparray | np.ndarray | None:
         """Get a matrix based on its key word arguments
 
         Args:
             kwargs (dict): The key word arguments for generating the matrix
 
         Returns:
-             mat ([scipy.sparse.sparray | np.ndarray, dict] | None): The matrix
+             mat (scipy.sparse.sparray | np.ndarray | None): The matrix
              gotten
         """
