@@ -10,6 +10,50 @@ from src.Test import Test
 from src.util.ResultType import ResultType
 
 
+def baseline(
+        A: scipy.sparse.sparray,
+        v0: np.ndarray,
+        max_iter: int,
+        tol: float,
+) -> tuple [np.ndarray, np.ndarray, str]:
+    """Run the default power iteration on this matrix
+
+    Args:
+        A: the original matrix
+        v0: initial guess for top eigenvector
+        max_iter: maximum number of iterations to do power iteration
+        tol (float): how much precision before terminating power
+
+    Returns:
+        tuple [np.ndarray, np.ndarray, str]:
+        np.ndarray: the x-values (the ammount of work done),
+        np.ndarray: the y-values (the score of the vector),
+        str: the string representation of this test
+    """
+    v=v0
+    scores, _, iter = comp.init_test(
+        A=A,
+        v0=v0,
+        max_iter=max_iter,
+    )
+    while iter < max_iter:
+        lam, v = power(
+            A = A,
+            v0=v,
+            num_iter=1,
+        )
+        scores[iter] = lam
+        if (comp.terminate_power(scores[iter - 1], scores[iter], tol)):
+            iter += 1
+            break
+        iter += 1
+
+    scores = scores[0:iter]
+    power_wrk = work.power_work(matrix=A, num_iter=iter)
+    lbl = "baseline"
+    return power_wrk, scores, lbl
+
+
 class AccWorkTest(Test):
     """For doing some tests"""
 
@@ -78,6 +122,105 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
+
+    def __binomial_test(
+        self,
+        A: scipy.sparse.sparray,
+        v0: np.ndarray,
+        num_trials:int,
+        is_distributed:bool
+    ) -> tuple [np.ndarray, np.ndarray, int, str]:
+        """Run the parallelizable approach, return results
+
+        Args:
+            A (scipy.sparse.sparray): Matrix in question
+            v0 (np.ndarray): Initial guess for top eigenvector
+            max_iter (int): Max number of iterations for power
+            tol (float): Tolerance of power iteration
+            num_trials (int): Number of things to average
+            seed (int): For repeatable randomization
+            is_distributed (bool): Changes ammount of work that goes into computing
+            an approximation for A^TA
+
+        Returns: #TODO fix this comment
+            xs (np.ndarray): work per iteration
+            ys (np.ndarray): score of approximate eigenvector per iteration
+            nnz (int): Number of nonzeroes in the approximation of the 2nd moment
+            lbl (str): label of this test
+        """
+        rng = np.random.default_rng(seed=self.seed)
+        tilde_A_sq = binomial_A_tilde_sq(
+            A=A,
+            num_trials=num_trials,
+            rng=rng,
+        )
+        init_work = work.work_binomial( #TODO: work calculator
+            A=A,
+            is_distributed=is_distributed
+        )
+
+        xs, ys = test(
+            A_sq=A.transpose() @ A,
+            tilde_A_sq=tilde_A_sq,
+            v0=v0,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            init_work=init_work,
+        )
+
+    #    lbl = f"binomial (distributed={is_distributed}), {num_trials} trials"
+        if num_trials == 1:
+            lbl = f"{num_trials} trial"
+        else:
+            lbl = f"{num_trials} trials"
+
+    #    print(f"xs[:8]: {xs[:8]}")
+
+        return xs, ys, tilde_A_sq.nnz, lbl
+
+
+    def __baseline_pays(
+        self,
+        A: scipy.sparse.sparray,
+        v0: np.ndarray,
+        is_distributed:bool,
+    ) -> tuple [np.ndarray, np.ndarray, str]:
+        """Run the default power iteration on this matrix, charging it for the
+        initial cost of computing A^TA
+
+        Args:
+            A: the original matrix
+            v0: initial guess for top eigenvector
+            max_iter: maximum number of iterations to do power iteration
+            tol (float): how much precision before terminating power
+            is_distributed (bool): Changes ammount of work that goes into computing
+            A^TA
+
+        Returns: #TODO fix this comment
+            tuple [np.ndarray, np.ndarray, str]:
+                np.ndarray: the x-values (the ammount of work done),
+                np.ndarray: the y-values (the score of the vector),
+                str: the string representation of this test
+        """
+        xs, ys, lbl = baseline(
+            A=A.transpose() @ A,
+            v0=v0,
+            max_iter=self.max_iter,
+            tol=self.tol
+        )
+
+        # Add initial work
+        init_work = work.work_baseline(
+            A=A,
+            is_distributed=is_distributed,
+        )
+        xs += init_work
+
+    #    return xs, ys, f"{lbl} (is_distributed={is_distributed})"
+        return xs, ys, lbl
+
+
+
     def run(self) -> None:
         """Run the test!"""
         # TODO: this guy
@@ -97,7 +240,7 @@ class AccWorkTest(Test):
             rand_vect = rng.normal(loc=0.0, scale=0.0625, size=matrix.shape[0])
             normalized_vect = rand_vect / np.linalg.norm(rand_vect, ord=2)
 
-            work_baseline, acc_baseline, _ = self._baseline_pays(  # TODO
+            work_baseline, acc_baseline, _ = self.__baseline_pays(  # TODO
                 A=matrix,
                 v0=normalized_vect,
                 is_distributed=True,  # Always assuming distributed -> less work
@@ -115,7 +258,7 @@ class AccWorkTest(Test):
             for i, n_trials in tqdm(enumerate(self.num_trials)):
                 lbl = ""
                 for j in range(self.num_avg):
-                    xs_temp, ys_temp, nnzs[i, j], lbl = self._binomial_test(  # TODO
+                    xs_temp, ys_temp, nnzs[i, j], lbl = self.__binomial_test(  # TODO
                         A=matrix,
                         v0=normalized_vect,
                         num_trials=n_trials,
