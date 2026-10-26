@@ -1,5 +1,4 @@
-"""A superclass which defines the API needed to be a 'Result'
-"""
+"""A superclass which defines the API needed to be a 'Result'"""
 
 import os
 from abc import ABC, abstractmethod
@@ -23,7 +22,7 @@ class Result(ABC):
         """
         self.path = Path(f"data/{test_str}")
 
-    def get_paths(self, file_id: int) -> tuple[Path,Path]:
+    def get_paths(self, file_id: int) -> tuple[Path, Path]:
         """Get the paths to the file name in test_results directory
 
         Args:
@@ -45,7 +44,7 @@ class Result(ABC):
              maximum (int): The maximum file number currently
         """
         curr_max = 0
-        for (root, dirs, files) in os.walk(self.path):
+        for root, dirs, files in os.walk(self.path):
             for file in files:
                 if file.endswith(".json"):
                     try:
@@ -57,7 +56,7 @@ class Result(ABC):
         return curr_max + 1
 
     @abstractmethod
-    def load_results(self, file_id:int) -> None:
+    def load_results(self, file_id: int) -> None:
         """Load the results from the provided file name
 
         Args:

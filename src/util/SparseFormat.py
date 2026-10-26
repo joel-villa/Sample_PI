@@ -4,6 +4,7 @@ Resources:
     - Enums:
         https://docs.python.org/3/library/enum.html
 """
+
 from enum import Enum
 
 

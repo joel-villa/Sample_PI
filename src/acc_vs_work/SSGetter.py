@@ -89,12 +89,12 @@ class SSGetter(MatGetter):
         ss_matrix.download()  # Download the matrix
 
         # Get the local path of the .tar.gz file
-        path_tuple = ss_matrix.localpath() # This returns a tuple (two identical paths)
-        tar_path = path_tuple[0]   # Use the first path (both are the same)
+        path_tuple = ss_matrix.localpath()  # This returns a tuple (two identical paths)
+        tar_path = path_tuple[0]  # Use the first path (both are the same)
 
         # Extract the .tar.gz file to get the matrix file inside
-        if tar_path.endswith('.tar.gz'):
-            with tarfile.open(tar_path, 'r:gz') as tar:
+        if tar_path.endswith(".tar.gz"):
+            with tarfile.open(tar_path, "r:gz") as tar:
                 # Extract files in the same folder as the .tar.gz file
                 extract_dir = os.path.dirname(tar_path)
                 tar.extractall(path=extract_dir)  # Extract to the same folder
@@ -103,7 +103,7 @@ class SSGetter(MatGetter):
             matrix_file = None
             extract_dir = os.path.join(extract_dir, ss_matrix.name)
             for extracted_file in os.listdir(extract_dir):
-                if extracted_file.endswith('.mtx'):
+                if extracted_file.endswith(".mtx"):
                     matrix_file = extracted_file
                     break
 
@@ -130,7 +130,7 @@ class SSGetter(MatGetter):
         """
         if matrix.nnz < self.nzbounds[0] | matrix.nnz > self.nzbounds[1]:
             warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
-        #TODO: rest of error checking
+        # TODO: rest of error checking
         raise NotImplementedError
 
     def get(
@@ -163,18 +163,18 @@ class SSGetter(MatGetter):
 
                 for ss_mat in ss_mats:
                     self.mat_queue.put(
-                        item = ss_mat,
-                        block = False,
+                        item=ss_mat,
+                        block=False,
                     )
                 ss_matrix = self.mat_queue.get(block=False)
                 matrix = self.load_mat(ss_matrix=ss_matrix)
             else:
                 # Have stuff in queue, get it
-                ss_matrix=self.mat_queue.get(block=False)
+                ss_matrix = self.mat_queue.get(block=False)
                 matrix = self.load_mat(ss_matrix=ss_matrix)
         else:
             # Searching by name
-            mat_name = kwargs.get('name')
+            mat_name = kwargs.get("name")
             if mat_name:
                 ss_mat = ssgetpy.search(mat_name)[0]
                 matrix = self.load_mat(ss_mat)
@@ -197,17 +197,14 @@ class SSGetter(MatGetter):
 
         return matrix
 
+
 def main() -> None:
-    ss_getter = SSGetter(
-        format=SparseFormat.CSR,
-        nzbounds=(1000, 100000)
-    )
-    sparse_mat = ss_getter.get({
-        "name": "494_bus"
-    })
+    ss_getter = SSGetter(format=SparseFormat.CSR, nzbounds=(1000, 100000))
+    sparse_mat = ss_getter.get({"name": "494_bus"})
     print(sparse_mat)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """
     Testing ssgetpy bug
     """

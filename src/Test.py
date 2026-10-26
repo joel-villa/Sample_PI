@@ -28,5 +28,4 @@ class Test(ABC):
 
     @abstractmethod
     def run(self) -> None:
-        """Run the test!
-        """
+        """Run the test!"""
