@@ -431,7 +431,7 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    result_ids = range(1, 6)
+    result_ids = range(1, 25)
 
     for id in result_ids:
         results = AccWorkResult(file_id=id)
