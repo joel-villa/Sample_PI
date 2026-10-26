@@ -3,18 +3,18 @@
 from abc import ABC, abstractmethod
 
 from .MatGetter import MatGetter
-from .Result import Result
+from .util.ResultType import ResultType
 
 
 class Test(ABC):
     """For doing some tests"""
 
-    result: Result
+    result: ResultType
     mat_getter: MatGetter
 
     def __init__(
         self,
-        result: Result,
+        result: ResultType,
         mat_getter: MatGetter,
     ) -> None:
         """Create a Result object
