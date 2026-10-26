@@ -117,7 +117,9 @@ class SSGetter(MatGetter):
             # Now, read the extracted matrix file using mmread and return it in coo
             return scipy.io.mmread(extracted_path)
         else:
-            warn(f"Matrix {ss_matrix.name} is not in .tar.gz format.") #TODO: this is how to get the name
+            warn(
+                f"Matrix {ss_matrix.name} is not in .tar.gz format."
+            )  # TODO: this is how to get the name
         return None
 
     def check_mat(
@@ -145,7 +147,7 @@ class SSGetter(MatGetter):
 
         Returns:
              ss_matrix (ssgetpy.matrix.Matrix): The Matrix object
-	    """
+        """
         ss_matrix: scipy.sparse.sparray | None = None
         if mat_name is None:
             if self.mat_queue.empty():
@@ -225,7 +227,7 @@ class SSGetter(MatGetter):
         """
         mat_name = None
         if kwargs:
-            mat_name = kwargs.get('mat_name')
+            mat_name = kwargs.get("mat_name")
 
         ss_result = self.ssget(mat_name=mat_name)
 
