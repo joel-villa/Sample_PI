@@ -287,8 +287,9 @@ class SSGetter(MatGetter):
             matrix (scipy.sparse): the matrix in sparse format
             scale_factor (float): the scaling factor
         """
-        if type(matrix) is not scipy.sparse.sparray:
-            raise TypeError(f"Expecting sparse array, not {type(matrix)}")
+        if type(matrix) is np.ndarray:
+            raise TypeError("Expecting sparse matrix, not dense one")
+
         if matrix.data.dtype not in {np.float32, np.float64}:
             if matrix.data.dtype not in {np.int32, np.int64}:
                 raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
