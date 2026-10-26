@@ -16,7 +16,7 @@ import scipy
 import ssgetpy
 
 from ..MatGetter import MatGetter
-from ..util.SparseFormat import SparseFormat
+from ..util import SparseFormat
 
 
 class SSGetter(MatGetter):
@@ -24,7 +24,7 @@ class SSGetter(MatGetter):
     A wrapper for the ssgetpy library
     """
 
-    format: SparseFormat
+    format: SparseFormat.SparseFormat
 
     nzbounds: tuple[int, int]
     limit: int | None
@@ -39,7 +39,8 @@ class SSGetter(MatGetter):
 
     def __init__(
         self,
-        format: SparseFormat,
+        preprocess_data: bool,
+        format: SparseFormat.SparseFormat,
         nzbounds: tuple[int, int],
         limit: int | None = None,
         rowbounds: tuple[int, int] | None = None,
@@ -52,7 +53,7 @@ class SSGetter(MatGetter):
         """The initializer for the SSGetter
 
         Args:
-            format (SparseFormat): The sparse format (COO, CSR, or CSC)
+            format (SparseFormat.SparseFormat): The sparse format (COO, CSR, or CSC)
             nzbounds (tuple[int, int]): The bounds on number of nonzeroes used,
             limit (int | None): The maximum number of matrices to load at once
             rowbounds (tuple[int, int] | None): The bounds on the row count
@@ -63,7 +64,7 @@ class SSGetter(MatGetter):
             kind (str | None): Kind of matrix
         """
         # Call to Parent's __init__()
-        super().__init__()
+        super().__init__(preprocess_data)
 
         if dtype not in {"real", "complex", "binary"}:
             warn(f"Likely an erroneous dtype: {dtype}")
@@ -183,11 +184,11 @@ class SSGetter(MatGetter):
             return None
 
         match self.format:
-            case SparseFormat.COO:
+            case SparseFormat.SparseFormat.COO:
                 matrix = matrix.tocoo()
-            case SparseFormat.CSC:
+            case SparseFormat.SparseFormat.CSC:
                 matrix = matrix.tocsc()
-            case SparseFormat.CSR:
+            case SparseFormat.SparseFormat.CSR:
                 matrix = matrix.tocsr()
             case _:
                 warn(f"Unexpected sparse format: {self.format}")
@@ -196,10 +197,46 @@ class SSGetter(MatGetter):
         self.check_mat(matrix)
 
         return matrix
+    def preprocess(
+        self,
+        matrix: scipy.sparse.sparray | np.ndarray,
+    ) -> tuple[scipy.sparse.sparray | np.ndarray, float]:
+        """Get A scaled by a factor of 1/max_i(||a_i||)
+
+        Args:
+            mat_name (str): the name of the suite-spasrse matrix
+
+        Returns:
+            matrix (scipy.sparse): the matrix in sparse format
+            max_row_magnitude (float): the scaling factor
+        """
+        if type(matrix) not in SparseFormat.TYPES:
+            raise TypeError(f"Incorrect type of matrix: {type(matrix)}")
+
+        elif (matrix.data.dtype not in {np.float32, np.float64}):
+            if (matrix.data.dtype not in {np.int32, np.int64}):
+                raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
+            matrix.data = matrix.data.astype(float)
+
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError(f"Given non-square matrix: A.shape = {matrix.shape}")
+
+        max_row_magnitude = get_sorted_row_norms(mat_name, rescale=False)[0] #TODO
+
+        # Rescale A
+        matrix = matrix / max_row_magnitude
+
+        matrix.eliminate_zeros()
+
+        return matrix, max_row_magnitude
 
 
 def main() -> None:
-    ss_getter = SSGetter(format=SparseFormat.CSR, nzbounds=(1000, 100000))
+    ss_getter = SSGetter(
+        preprocess_data=True,
+        format=SparseFormat.SparseFormat.CSR,
+        nzbounds=(1000, 100000)
+    )
     sparse_mat = ss_getter.get({"name": "494_bus"})
     print(sparse_mat)
 
