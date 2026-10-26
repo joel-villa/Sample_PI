@@ -11,11 +11,11 @@ from src.util.ResultType import ResultType
 
 
 def baseline(
-        A: scipy.sparse.sparray,
-        v0: np.ndarray,
-        max_iter: int,
-        tol: float,
-) -> tuple [np.ndarray, np.ndarray, str]:
+    A: scipy.sparse.sparray,
+    v0: np.ndarray,
+    max_iter: int,
+    tol: float,
+) -> tuple[np.ndarray, np.ndarray, str]:
     """Run the default power iteration on this matrix
 
     Args:
@@ -30,7 +30,7 @@ def baseline(
         np.ndarray: the y-values (the score of the vector),
         str: the string representation of this test
     """
-    v=v0
+    v = v0
     scores, _, iter = comp.init_test(
         A=A,
         v0=v0,
@@ -38,12 +38,12 @@ def baseline(
     )
     while iter < max_iter:
         lam, v = power(
-            A = A,
+            A=A,
             v0=v,
             num_iter=1,
         )
         scores[iter] = lam
-        if (comp.terminate_power(scores[iter - 1], scores[iter], tol)):
+        if comp.terminate_power(scores[iter - 1], scores[iter], tol):
             iter += 1
             break
         iter += 1
@@ -122,14 +122,13 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
-
     def __binomial_test(
         self,
         A: scipy.sparse.sparray,
         v0: np.ndarray,
-        num_trials:int,
-        is_distributed:bool
-    ) -> tuple [np.ndarray, np.ndarray, int, str]:
+        num_trials: int,
+        is_distributed: bool,
+    ) -> tuple[np.ndarray, np.ndarray, int, str]:
         """Run the parallelizable approach, return results
 
         Args:
@@ -154,9 +153,8 @@ class AccWorkTest(Test):
             num_trials=num_trials,
             rng=rng,
         )
-        init_work = work.work_binomial( #TODO: work calculator
-            A=A,
-            is_distributed=is_distributed
+        init_work = work.work_binomial(  # TODO: work calculator
+            A=A, is_distributed=is_distributed
         )
 
         xs, ys = test(
@@ -168,23 +166,22 @@ class AccWorkTest(Test):
             init_work=init_work,
         )
 
-    #    lbl = f"binomial (distributed={is_distributed}), {num_trials} trials"
+        #    lbl = f"binomial (distributed={is_distributed}), {num_trials} trials"
         if num_trials == 1:
             lbl = f"{num_trials} trial"
         else:
             lbl = f"{num_trials} trials"
 
-    #    print(f"xs[:8]: {xs[:8]}")
+        #    print(f"xs[:8]: {xs[:8]}")
 
         return xs, ys, tilde_A_sq.nnz, lbl
-
 
     def __baseline_pays(
         self,
         A: scipy.sparse.sparray,
         v0: np.ndarray,
-        is_distributed:bool,
-    ) -> tuple [np.ndarray, np.ndarray, str]:
+        is_distributed: bool,
+    ) -> tuple[np.ndarray, np.ndarray, str]:
         """Run the default power iteration on this matrix, charging it for the
         initial cost of computing A^TA
 
@@ -203,10 +200,7 @@ class AccWorkTest(Test):
                 str: the string representation of this test
         """
         xs, ys, lbl = baseline(
-            A=A.transpose() @ A,
-            v0=v0,
-            max_iter=self.max_iter,
-            tol=self.tol
+            A=A.transpose() @ A, v0=v0, max_iter=self.max_iter, tol=self.tol
         )
 
         # Add initial work
@@ -216,10 +210,8 @@ class AccWorkTest(Test):
         )
         xs += init_work
 
-    #    return xs, ys, f"{lbl} (is_distributed={is_distributed})"
+        #    return xs, ys, f"{lbl} (is_distributed={is_distributed})"
         return xs, ys, lbl
-
-
 
     def run(self) -> None:
         """Run the test!"""
