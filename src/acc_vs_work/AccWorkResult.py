@@ -4,23 +4,26 @@ Resources:
     https://docs.python.org/3/tutorial/classes.html
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
+
 import json
-import numpy as np
 
 import matplotlib
+import numpy as np
+
 matplotlib.use("QtAgg")
+
 import matplotlib.pyplot as plt
-from pathlib import Path
-from warnings import warn
+
 from ..Result import Result
 from ..util.constants import THIRTY_TWO_BIT_PRECISION
 
 # Some helper fucntions:
 
+
 def check_vals(
-    max:float,
-    xs:np.ndarray,
-    check_max:bool,
+    max: float,
+    xs: np.ndarray,
+    check_max: bool,
 ):
     """Adjust the x values s.t. they are on a range from 0 to 1, where if x_i
     equals max then set that value to one
@@ -36,10 +39,10 @@ def check_vals(
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
 
-def rel_value( #TODO delete this and rel residue and check_vals
-        max:float,
-        xs:np.ndarray,
-        check_max:bool,
+def rel_value(  # TODO delete this and rel residue and check_vals
+    max: float,
+    xs: np.ndarray,
+    check_max: bool,
 ) -> np.ndarray:
     """Adjust the x values s.t. they are on a range from 0 to 1, where if x_i
     equals max then set that value to one
@@ -61,10 +64,11 @@ def rel_value( #TODO delete this and rel residue and check_vals
 
     return xs / max
 
+
 def rel_residue(
     max: float,
-    xs:np.ndarray,
-    check_max:bool,
+    xs: np.ndarray,
+    check_max: bool,
 ) -> np.ndarray:
     """Calculate relative residual
 
@@ -83,15 +87,14 @@ def rel_residue(
 
 
 class AccWorkResult(Result):
-    """The metadata to track
-	"""
+    """The metadata to track"""
 
     FILE_ID_LEN: int = 3
-    TEST_STRING: str = 'acc_vs_work'
+    TEST_STRING: str = "acc_vs_work"
 
     mat_name: str
     is_sparse: bool
-    mat_shape: tuple[int, int] # TODO: add this
+    mat_shape: tuple[int, int]  # TODO: add this
     snd_moment_norm: float
     snd_moment_nnz: int
     max_iter: int
@@ -174,23 +177,23 @@ class AccWorkResult(Result):
             self.load_results(file_id)
         else:
             if (
-                mat_name is None or
-                mat_shape is None or
-                is_sparse is None or
-                snd_moment_norm is None or
-                snd_moment_nnz is None or
-                max_iter is None or
-                tol is None or
-                seed is None or
-                num_avg is None or
-                n_binom_trials is None or
-                lbls is None or
-                test_run_iters is None or
-                nnzs is None or
-                baseline_work is None or
-                baseline_accuracies is None or
-                work is None or
-                accuracies is None
+                mat_name is None
+                or mat_shape is None
+                or is_sparse is None
+                or snd_moment_norm is None
+                or snd_moment_nnz is None
+                or max_iter is None
+                or tol is None
+                or seed is None
+                or num_avg is None
+                or n_binom_trials is None
+                or lbls is None
+                or test_run_iters is None
+                or nnzs is None
+                or baseline_work is None
+                or baseline_accuracies is None
+                or work is None
+                or accuracies is None
             ):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
@@ -215,18 +218,36 @@ class AccWorkResult(Result):
             self.accuracies = accuracies
 
         # Ensuring correct usage
-        assert self.baseline_accuracies.shape == self.baseline_work.shape, f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
+        assert self.baseline_accuracies.shape == self.baseline_work.shape, (
+            f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
+        )
         n_trials = len(self.n_binom_trials)
-        assert n_trials == len(self.lbls), f"Incorrect dimensions {n_trials} != {len(self.lbls)}"
-        assert n_trials == self.test_run_iters.shape[0], f"Incorrect dimensions {n_trials} != {self.test_run_iters.shape[0]}"
-        assert n_trials == self.nnzs.shape[0], f"Incorrect dimensions {n_trials} != {self.nnzs.shape[0]}"
-        assert n_trials == self.work.shape[0], f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
-        assert n_trials == self.accuracies.shape[0], f"Incorrect dimensions {n_trials} != {self.accuracies.shape[0]}"
-        assert self.num_avg == self.test_run_iters.shape[1], f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
-        assert self.num_avg == self.nnzs.shape[1], f"Incorrect dimensions {self.num_avg} != {self.nnzs.shape[1]}"
-        assert self.num_avg == self.accuracies.shape[1], f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
+        assert n_trials == len(self.lbls), (
+            f"Incorrect dimensions {n_trials} != {len(self.lbls)}"
+        )
+        assert n_trials == self.test_run_iters.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self.test_run_iters.shape[0]}"
+        )
+        assert n_trials == self.nnzs.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self.nnzs.shape[0]}"
+        )
+        assert n_trials == self.work.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
+        )
+        assert n_trials == self.accuracies.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self.accuracies.shape[0]}"
+        )
+        assert self.num_avg == self.test_run_iters.shape[1], (
+            f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
+        )
+        assert self.num_avg == self.nnzs.shape[1], (
+            f"Incorrect dimensions {self.num_avg} != {self.nnzs.shape[1]}"
+        )
+        assert self.num_avg == self.accuracies.shape[1], (
+            f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
+        )
 
-    def load_results(self, file_id:int) -> None:
+    def load_results(self, file_id: int) -> None:
         """Load the results from the provided file name
 
         Args:
@@ -240,27 +261,27 @@ class AccWorkResult(Result):
 
         with open(path_json) as json_file:
             metadata = json.load(json_file)
-            self.mat_name = metadata['mat_name']
-            self.mat_shape = metadata['mat_shape']
-            self.is_sparse = metadata['is_sparse']
-            self.snd_moment_norm = metadata['snd_moment_norm']
-            self.snd_moment_nnz = metadata['snd_moment_nnz']
-            self.max_iter = metadata['max_iter']
-            self.tol = metadata['tol']
-            self.seed = metadata['seed']
-            self.num_avg = metadata['num_avg']
-            self.n_binom_trials = metadata['n_binom_trials']
-            self.lbls = metadata['lbls']
-            self.notes = metadata['notes']
+            self.mat_name = metadata["mat_name"]
+            self.mat_shape = metadata["mat_shape"]
+            self.is_sparse = metadata["is_sparse"]
+            self.snd_moment_norm = metadata["snd_moment_norm"]
+            self.snd_moment_nnz = metadata["snd_moment_nnz"]
+            self.max_iter = metadata["max_iter"]
+            self.tol = metadata["tol"]
+            self.seed = metadata["seed"]
+            self.num_avg = metadata["num_avg"]
+            self.n_binom_trials = metadata["n_binom_trials"]
+            self.lbls = metadata["lbls"]
+            self.notes = metadata["notes"]
 
         npzfile = np.load(path_npz)
 
-        self.test_run_iters = npzfile['test_run_iters']
-        self.nnzs = npzfile['nnzs']
-        self.baseline_work = npzfile['baseline_work']
-        self.baseline_accuracies = npzfile['baseline_accuracies']
-        self.work = npzfile['work']
-        self.accuracies = npzfile['accuracies']
+        self.test_run_iters = npzfile["test_run_iters"]
+        self.nnzs = npzfile["nnzs"]
+        self.baseline_work = npzfile["baseline_work"]
+        self.baseline_accuracies = npzfile["baseline_accuracies"]
+        self.work = npzfile["work"]
+        self.accuracies = npzfile["accuracies"]
 
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file
@@ -280,30 +301,30 @@ class AccWorkResult(Result):
         path_json, path_npz = self.get_paths(file_id)
 
         metadata = {
-            'mat_name': self.mat_name,
-            'mat_shape': self.mat_shape,
-            'is_sparse': self.is_sparse,
-            'snd_moment_norm': self.snd_moment_norm,
-            'snd_moment_nnz': self.snd_moment_nnz,
-            'max_iter': self.max_iter,
-            'tol': self.tol,
-            'seed': self.seed,
-            'num_avg': self.num_avg,
-            'n_binom_trials': self.n_binom_trials,
-            'lbls': self.lbls,
-            'notes': self.notes,
+            "mat_name": self.mat_name,
+            "mat_shape": self.mat_shape,
+            "is_sparse": self.is_sparse,
+            "snd_moment_norm": self.snd_moment_norm,
+            "snd_moment_nnz": self.snd_moment_nnz,
+            "max_iter": self.max_iter,
+            "tol": self.tol,
+            "seed": self.seed,
+            "num_avg": self.num_avg,
+            "n_binom_trials": self.n_binom_trials,
+            "lbls": self.lbls,
+            "notes": self.notes,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
 
         np.savez(
             path_npz,
-            test_run_iters = self.test_run_iters,
-            nnzs = self.nnzs,
-            baseline_work = self.baseline_work,
-            baseline_accuracies = self.baseline_accuracies,
-            work = self.work,
-            accuracies = self.accuracies,
+            test_run_iters=self.test_run_iters,
+            nnzs=self.nnzs,
+            baseline_work=self.baseline_work,
+            baseline_accuracies=self.baseline_accuracies,
+            work=self.work,
+            accuracies=self.accuracies,
         )
 
         return file_id
@@ -339,7 +360,7 @@ class AccWorkResult(Result):
             xs=base_ys,
             check_max=True,
         )
-        ax.plot(base_xs,base_ys, label=f"baseline, nnz = {self.snd_moment_nnz}")
+        ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self.snd_moment_nnz}")
 
         num_trials = self.work.shape[0]
         num_avg = self.num_avg
@@ -352,7 +373,7 @@ class AccWorkResult(Result):
 
             lbl = self.lbls[i]
             xs = self.work[i, :most_iter]
-            ys_i = np.full( # for averaging
+            ys_i = np.full(  # for averaging
                 (num_avg, self.accuracies.shape[2]),
                 np.nan,
             )
@@ -366,8 +387,8 @@ class AccWorkResult(Result):
 
             for j in range(num_avg):
                 # Looping through the runs (for averaging purposes)
-                ys_temp = self.accuracies[i, j, :self.test_run_iters[i, j]]
-                ys_i[j, :self.test_run_iters[i, j]] = rel_residue(
+                ys_temp = self.accuracies[i, j, : self.test_run_iters[i, j]]
+                ys_i[j, : self.test_run_iters[i, j]] = rel_residue(
                     max=self.snd_moment_norm,
                     xs=ys_temp,
                     check_max=True,
@@ -376,10 +397,10 @@ class AccWorkResult(Result):
             ys = np.nanmean(ys_i, axis=0)
             nnz = round(np.mean(self.nnzs[i]))
 
-            if (run_length_type == 1):
+            if run_length_type == 1:
                 xs = xs[:least_iter]
                 ys = ys[:least_iter]
-            elif (run_length_type == 2):
+            elif run_length_type == 2:
                 xs = xs[:median_iter]
                 ys = ys[:median_iter]
             else:
@@ -394,8 +415,8 @@ class AccWorkResult(Result):
         )
         ax.set_xlabel("Approximate Proportion of Scalar Mults")
         ax.set_ylabel(r"$\frac{|A^TA| - |A^TA\tilde v_1|}{|A^TA|}$", rotation=0)
-        if (log_y):
-            ax.set_yscale('log')
+        if log_y:
+            ax.set_yscale("log")
         ax.legend()
         fig.canvas.draw()
         plt.show()
@@ -407,15 +428,16 @@ class AccWorkResult(Result):
             log_y=True,
         )
 
+
 def main():
-    """Nothing but a thang
-	"""
+    """Nothing but a thang"""
     result_ids = range(1, 6)
 
     for id in result_ids:
         results = AccWorkResult(file_id=id)
         results.disp_results()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """For testing purporses"""
     main()
