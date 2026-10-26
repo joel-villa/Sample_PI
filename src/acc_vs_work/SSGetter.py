@@ -70,7 +70,7 @@ class SSGetter(MatGetter):
         # Call to Parent's __init__()
         super().__init__(preprocess_data)
 
-        if dtype not in {"real", "complex", "binary"}:
+        if dtype is not None and dtype not in {"real", "complex", "binary"}:
             warn(f"Likely an erroneous dtype: {dtype}")
 
         self.format = format
@@ -278,19 +278,22 @@ class SSGetter(MatGetter):
         Returns:
             matrix (scipy.sparse): the matrix in sparse format
             scale_factor (float): the scaling factor
+        Resources:
+            Numpy type checking:
+                https://numpy.org/doc/stable/reference/generated/numpy.issubdtype.html
         """
         if type(matrix) is np.ndarray:
             raise TypeError("Expecting sparse matrix, not dense one")
 
-        if matrix.data.dtype not in {np.float32, np.float64}:
-            if matrix.data.dtype not in {np.int32, np.int64}:
+        if not np.issubdtype(matrix.data.dtype, np.floating):
+            if not np.issubdtype(matrix.data.dtype, np.integer):
                 raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
             matrix.data = matrix.data.astype(float)
 
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError(f"Given non-square matrix: A.shape = {matrix.shape}")
 
-        row_mags = np.asarray(scipy.sparse.norm(matrix, ord=ord, axis=1))
+        row_mags = np.asarray(scipy.sparse.linalg.norm(matrix, ord=2, axis=1))
         top_row_mag = max(row_mags)
 
         # Rescale A
@@ -374,7 +377,7 @@ def main() -> None:
         "tomography",
     ]
     for mat in mats:
-        ss_getter.get_preprocessed("494_bus")
+        ss_getter.get_preprocessed(mat)
 
 
 if __name__ == "__main__":
