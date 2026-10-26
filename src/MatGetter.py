@@ -43,8 +43,8 @@ class MatGetter(ABC):
             kwargs (dict): The key word arguments for generating the matrix
 
         Returns:
-             mat (scipy.sparse.sparray | np.ndarray | None): The matrix
-             gotten
+            mat (scipy.sparse.sparray | np.ndarray | None): The matrix
+            gotten
         """
 
     @abstractmethod
