@@ -197,6 +197,7 @@ class SSGetter(MatGetter):
         self.check_mat(matrix)
 
         return matrix
+
     def preprocess(
         self,
         matrix: scipy.sparse.sparray | np.ndarray,
@@ -213,15 +214,15 @@ class SSGetter(MatGetter):
         if type(matrix) not in SparseFormat.TYPES:
             raise TypeError(f"Incorrect type of matrix: {type(matrix)}")
 
-        elif (matrix.data.dtype not in {np.float32, np.float64}):
-            if (matrix.data.dtype not in {np.int32, np.int64}):
+        elif matrix.data.dtype not in {np.float32, np.float64}:
+            if matrix.data.dtype not in {np.int32, np.int64}:
                 raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
             matrix.data = matrix.data.astype(float)
 
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError(f"Given non-square matrix: A.shape = {matrix.shape}")
 
-        max_row_magnitude = get_sorted_row_norms(mat_name, rescale=False)[0] #TODO
+        max_row_magnitude = get_sorted_row_norms(mat_name, rescale=False)[0]  # TODO
 
         # Rescale A
         matrix = matrix / max_row_magnitude
@@ -235,7 +236,7 @@ def main() -> None:
     ss_getter = SSGetter(
         preprocess_data=True,
         format=SparseFormat.SparseFormat.CSR,
-        nzbounds=(1000, 100000)
+        nzbounds=(1000, 100000),
     )
     sparse_mat = ss_getter.get({"name": "494_bus"})
     print(sparse_mat)

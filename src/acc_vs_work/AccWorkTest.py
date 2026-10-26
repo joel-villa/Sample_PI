@@ -1,26 +1,24 @@
-
-from src.Test import Test
 from src.acc_vs_work.SSGetter import SSGetter
+from src.Test import Test
 from src.util.ResultType import ResultType
 
 
 class AccWorkTest(Test):
     """For doing some tests"""
 
-
     def __init__(
         self,
         result_type: ResultType,
         mat_getter: SSGetter,
-        log_y:bool,
-        run_length_type:int,
-        num_avg:int,
-        mats:list[str],
-        on_easley:bool,
-        max_iter:int,
-        tol:float,
-        seed:int,
-        Ns:list[int],
+        log_y: bool,
+        run_length_type: int,
+        num_avg: int,
+        mats: list[str],
+        on_easley: bool,
+        max_iter: int,
+        tol: float,
+        seed: int,
+        Ns: list[int],
     ) -> None:
         """Create a Result object
 
@@ -41,7 +39,9 @@ class AccWorkTest(Test):
             seed (int): for repeated randomness
             Ns (list[int]): Number of bernoulli trials
         """
-        assert result_type is ResultType.ACC_VS_WORK, f"result_type not ACC_VS_WORK: {result_type}"
+        assert result_type is ResultType.ACC_VS_WORK, (
+            f"result_type not ACC_VS_WORK: {result_type}"
+        )
         # Call to Parent's __init__()
         super().__init__(
             result_type=result_type,

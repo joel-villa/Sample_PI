@@ -28,7 +28,7 @@ class MatGetter(ABC):
         Args:
             preprocesss_data (bool): True -> apply scaling, False -> don't
 
-	    """
+        """
         super().__init__()
         self.preprocess_data = preprocess_data
 

@@ -11,11 +11,14 @@ from enum import Enum
 
 import scipy
 
-TYPES: frozenset = frozenset({
-            scipy.sparse.coo_array,
-            scipy.sparse.csr_array,
-            scipy.sparse.csc_array,
-        })
+TYPES: frozenset = frozenset(
+    {
+        scipy.sparse.coo_array,
+        scipy.sparse.csr_array,
+        scipy.sparse.csc_array,
+    }
+)
+
 
 # class syntax
 class SparseFormat(Enum):
