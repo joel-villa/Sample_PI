@@ -2,7 +2,10 @@
 A file for interfacing with the suite sparse matrix collection
 
 Resources:
-    https://nbviewer.org/github/drdarshan/ssgetpy/blob/master/demo.ipynb
+    ssgetpy tutorial:
+        https://nbviewer.org/github/drdarshan/ssgetpy/blob/master/demo.ipynb
+    private class methods:
+        https://stackoverflow.com/questions/17193457/private-methods-in-python
 """
 
 import json
@@ -86,7 +89,7 @@ class SSGetter(MatGetter):
 
         self.mat_queue = Queue()
 
-    def load_mat(
+    def __load_mat(
         self,
         ss_matrix: ssgetpy.matrix.Matrix,
     ) -> scipy.sparse.sparray | None:
@@ -126,7 +129,7 @@ class SSGetter(MatGetter):
             )  # TODO: this is how to get the name
         return None
 
-    def check_mat(
+    def __check_mat(
         self,
         matrix: ssgetpy.matrix.Matrix,
     ) -> None:
@@ -155,7 +158,7 @@ class SSGetter(MatGetter):
         if self.kind is not None and (self.kind != matrix.kind):
             warn(f"Requested {self.kind}, got {matrix.kind}")
 
-    def get_ss_mat(
+    def __get_ss_mat(
         self,
         mat_name: str | None,
     ) -> ssgetpy.matrix.Matrix | None:
@@ -209,11 +212,11 @@ class SSGetter(MatGetter):
             mat (scipy.sparse.sparray): The matrix
             gotten
         """
-        ss_matrix = self.get_ss_mat(mat_name=mat_name)
+        ss_matrix = self.__get_ss_mat(mat_name=mat_name)
         if ss_matrix is None:
             return None
 
-        matrix = self.load_mat(ss_matrix=ss_matrix)
+        matrix = self.__load_mat(ss_matrix=ss_matrix)
         if matrix is None:
             return None
 
@@ -228,7 +231,7 @@ class SSGetter(MatGetter):
                 warn(f"Unexpected sparse format: {self.format}")
                 return None
 
-        self.check_mat(ss_matrix)
+        self.__check_mat(ss_matrix)
         return ss_matrix.name, matrix
 
     def get(
