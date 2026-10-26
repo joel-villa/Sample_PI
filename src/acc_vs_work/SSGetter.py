@@ -7,8 +7,8 @@ Resources:
 
 import json
 import os
-from pathlib import Path
 import tarfile
+from pathlib import Path
 from queue import Queue
 from typing import Any
 from warnings import warn
@@ -28,7 +28,7 @@ class SSGetter(MatGetter):
     A wrapper for the ssgetpy library
     """
 
-    TOP_MAG_PATH = Path('data/top_row_mags.json')
+    TOP_MAG_PATH = Path("data/top_row_mags.json")
     format: SparseFormat
     nzbounds: tuple[int, int]
     limit: int | None
@@ -138,30 +138,22 @@ class SSGetter(MatGetter):
 
         if matrix.nnz < self.nzbounds[0] or matrix.nnz > self.nzbounds[1]:
             warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
-        if (self.rowbounds is not None):
-            if (
-                matrix.rows < self.rowbounds[0]  or
-                matrix.rows > self.rowbounds[1]
-            ):
-                warn(f"matrix.shape={matrix.shape}, out of bounds: {self.rowbounds}")
-        if (self.colbounds is not None):
-            if (
-                matrix.cols < self.colbounds[0]  or
-                matrix.cols > self.colbounds[1]
-            ):
-                warn(f"matrix.shape={matrix.shape}, out of bounds: {self.colbounds}")
-        if self.isspd is not None:
-            if (self.isspd != matrix.isspd):
-                warn(f"Requested {self.isspd}, got {matrix.isspd}")
-        if self.dtype is not None:
-            if (self.dtype != matrix.dtype):
-                warn(f"Requested {self.dtype}, got {matrix.dtype}")
-        if self.group is not None:
-            if (self.group != matrix.group):
-                warn(f"Requested {self.group}, got {matrix.group}")
-        if self.kind is not None:
-            if (self.kind != matrix.kind):
-                warn(f"Requested {self.kind}, got {matrix.kind}")
+        if (self.rowbounds is not None) and (
+            matrix.rows < self.rowbounds[0] or matrix.rows > self.rowbounds[1]
+        ):
+            warn(f"matrix.shape={matrix.shape}, out of bounds: {self.rowbounds}")
+        if (self.colbounds is not None) and (
+            matrix.cols < self.colbounds[0] or matrix.cols > self.colbounds[1]
+        ):
+            warn(f"matrix.shape={matrix.shape}, out of bounds: {self.colbounds}")
+        if self.isspd is not None and (self.isspd != matrix.isspd):
+            warn(f"Requested {self.isspd}, got {matrix.isspd}")
+        if self.dtype is not None and (self.dtype != matrix.dtype):
+            warn(f"Requested {self.dtype}, got {matrix.dtype}")
+        if self.group is not None and (self.group != matrix.group):
+            warn(f"Requested {self.group}, got {matrix.group}")
+        if self.kind is not None and (self.kind != matrix.kind):
+            warn(f"Requested {self.kind}, got {matrix.kind}")
 
     def get_ss_mat(
         self,
@@ -265,7 +257,7 @@ class SSGetter(MatGetter):
 
     def rescale_matrix(
         self,
-        matrix:scipy.sparse.sparray,
+        matrix: scipy.sparse.sparray,
         max_row_mag: float,
     ) -> scipy.sparse.sparray:
         matrix = matrix / max_row_mag
@@ -331,7 +323,7 @@ class SSGetter(MatGetter):
         mat_name, matrix = ss_result
 
         top_mag_dict = None
-        with open(self.TOP_MAG_PATH, 'r', encoding=UTF_8_STR) as json_file:
+        with open(self.TOP_MAG_PATH, "r", encoding=UTF_8_STR) as json_file:
             top_mag_dict = json.load(json_file)
 
         top_mag = top_mag_dict.get(mat_name)
@@ -340,14 +332,11 @@ class SSGetter(MatGetter):
             # Not yet calculated -> calculate + save
             matrix, top_mag = self.preprocess(matrix)
             top_mag_dict |= {mat_name: top_mag}
-            with open(self.TOP_MAG_PATH, 'w', encoding=UTF_8_STR) as json_file:
+            with open(self.TOP_MAG_PATH, "w", encoding=UTF_8_STR) as json_file:
                 json.dump(top_mag_dict, json_file, indent=2)
         else:
             # Top row magnitude stored, do necessary calculations
-            matrix = self.rescale_matrix(
-                matrix=matrix,
-                max_row_mag=top_mag
-            )
+            matrix = self.rescale_matrix(matrix=matrix, max_row_mag=top_mag)
 
         return matrix
 
@@ -385,7 +374,8 @@ def main() -> None:
         "tomography",
     ]
     for mat in mats:
-        matrix = ss_getter.get_preprocessed('494_bus')
+        ss_getter.get_preprocessed("494_bus")
+
 
 if __name__ == "__main__":
     """
