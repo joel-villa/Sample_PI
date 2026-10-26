@@ -128,17 +128,40 @@ class SSGetter(MatGetter):
 
     def check_mat(
         self,
-        matrix: scipy.sparse.sparray,
+        matrix: ssgetpy.matrix.Matrix,
     ) -> None:
         """Checks the metadata requested matches the matrix given
 
         Args:
             matrix (scipy.sparse.sparray): The matrix to check
         """
-        if matrix.nnz < self.nzbounds[0] | matrix.nnz > self.nzbounds[1]:
+
+        if matrix.nnz < self.nzbounds[0] or matrix.nnz > self.nzbounds[1]:
             warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
-        # TODO: rest of error checking
-        raise NotImplementedError
+        if (self.rowbounds is not None):
+            if (
+                matrix.rows < self.rowbounds[0]  or
+                matrix.rows > self.rowbounds[1]
+            ):
+                warn(f"matrix.shape={matrix.shape}, out of bounds: {self.rowbounds}")
+        if (self.colbounds is not None):
+            if (
+                matrix.cols < self.colbounds[0]  or
+                matrix.cols > self.colbounds[1]
+            ):
+                warn(f"matrix.shape={matrix.shape}, out of bounds: {self.colbounds}")
+        if self.isspd is not None:
+            if (self.isspd != matrix.isspd):
+                warn(f"Requested {self.isspd}, got {matrix.isspd}")
+        if self.dtype is not None:
+            if (self.dtype != matrix.dtype):
+                warn(f"Requested {self.dtype}, got {matrix.dtype}")
+        if self.group is not None:
+            if (self.group != matrix.group):
+                warn(f"Requested {self.group}, got {matrix.group}")
+        if self.kind is not None:
+            if (self.kind != matrix.kind):
+                warn(f"Requested {self.kind}, got {matrix.kind}")
 
     def get_ss_mat(
         self,
@@ -213,7 +236,7 @@ class SSGetter(MatGetter):
                 warn(f"Unexpected sparse format: {self.format}")
                 return None
 
-        self.check_mat(matrix)
+        self.check_mat(ss_matrix)
         return ss_matrix.name, matrix
 
     def get(
