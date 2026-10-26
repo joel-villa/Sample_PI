@@ -12,6 +12,7 @@ from src.util.ResultType import ResultType
 
 class AccWorkTest(Test):
     """For doing some tests"""
+
     result_type: ResultType
     mat_getter: SSGetter
     log_y: bool
@@ -96,63 +97,61 @@ class AccWorkTest(Test):
             rand_vect = rng.normal(loc=0.0, scale=0.0625, size=matrix.shape[0])
             normalized_vect = rand_vect / np.linalg.norm(rand_vect, ord=2)
 
-            work_baseline, acc_baseline, _ = self._baseline_pays( #TODO
+            work_baseline, acc_baseline, _ = self._baseline_pays(  # TODO
                 A=matrix,
                 v0=normalized_vect,
-                is_distributed=True, # Always assuming distributed -> less work
+                is_distributed=True,  # Always assuming distributed -> less work
             )
-
 
             lbls = []
             num_Ns_tested = len(self.num_trials)
             test_run_iters = np.zeros((num_Ns_tested, self.num_avg), int)
             nnzs = np.zeros((num_Ns_tested, self.num_avg))
             work = np.full((num_Ns_tested, self.max_iter), np.nan)
-            accuracies = np.full((num_Ns_tested, self.num_avg, self.max_iter), np.nan) # NaNs for that good averaging
+            accuracies = np.full(
+                (num_Ns_tested, self.num_avg, self.max_iter), np.nan
+            )  # NaNs for that good averaging
 
             for i, n_trials in tqdm(enumerate(self.num_trials)):
                 lbl = ""
                 for j in range(self.num_avg):
-                    xs_temp, ys_temp, nnzs[i, j], lbl = self._binomial_test( #TODO
+                    xs_temp, ys_temp, nnzs[i, j], lbl = self._binomial_test(  # TODO
                         A=matrix,
                         v0=normalized_vect,
                         num_trials=n_trials,
-                        is_distributed=True, # Always distributed => less work
+                        is_distributed=True,  # Always distributed => less work
                     )
                     # Iteration tracking
                     curr_iter = ys_temp.shape[0]
-                    accuracies[i, j, : curr_iter] = ys_temp
+                    accuracies[i, j, :curr_iter] = ys_temp
                     test_run_iters[i, j] = curr_iter
-                    if (test_run_iters[i, j] == np.max(test_run_iters[i])):
+                    if test_run_iters[i, j] == np.max(test_run_iters[i]):
                         # Track longest!
-                        work[i, :test_run_iters[i,j]] = xs_temp
+                        work[i, : test_run_iters[i, j]] = xs_temp
 
                 lbls.append(lbl)
 
             result = AccWorkResult(
-                mat_name = mat,
-                mat_shape = matrix.shape,
-                is_sparse = True,
-                snd_moment_norm = two_norm,
-                snd_moment_nnz = snd_moment_A.nnz,
-                max_iter = self.max_iter,
-                tol = self.tol,
-                seed = self.seed,
-                num_avg = self.num_avg,
-                n_binom_trials = self.num_trials,
-                lbls = lbls,
-                notes = None,
-                test_run_iters = test_run_iters,
-                nnzs = nnzs,
-                baseline_work = work_baseline,
-                baseline_accuracies = acc_baseline,
-                work = work,
-                accuracies = accuracies,
+                mat_name=mat,
+                mat_shape=matrix.shape,
+                is_sparse=True,
+                snd_moment_norm=two_norm,
+                snd_moment_nnz=snd_moment_A.nnz,
+                max_iter=self.max_iter,
+                tol=self.tol,
+                seed=self.seed,
+                num_avg=self.num_avg,
+                n_binom_trials=self.num_trials,
+                lbls=lbls,
+                notes=None,
+                test_run_iters=test_run_iters,
+                nnzs=nnzs,
+                baseline_work=work_baseline,
+                baseline_accuracies=acc_baseline,
+                work=work,
+                accuracies=accuracies,
             )
             file_id = result.save_results()
             if not self.on_easley:
                 result = AccWorkResult(file_id=file_id)
-                result.display_results(
-                    log_y=True,
-                    run_length_type=self.run_length_type
-                )
+                result.display_results(log_y=True, run_length_type=self.run_length_type)

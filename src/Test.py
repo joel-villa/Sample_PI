@@ -11,7 +11,8 @@ from typing import Generic, TypeVar
 from .MatGetter import MatGetter
 from .util.ResultType import ResultType
 
-MGT = TypeVar('MGT', bound=MatGetter)
+MGT = TypeVar("MGT", bound=MatGetter)
+
 
 class Test(ABC, Generic[MGT]):
     """For doing some tests"""
