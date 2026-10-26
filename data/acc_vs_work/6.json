@@ -1,0 +1,33 @@
+{
+    "mat_name": "bcsstk08",
+    "mat_shape": [
+        1074,
+        1074
+    ],
+    "is_sparse": true,
+    "snd_moment_norm": 1.0089653872889288,
+    "snd_moment_nnz": 304428,
+    "max_iter": 131072,
+    "tol": 0,
+    "seed": 7,
+    "num_avg": 32,
+    "n_binom_trials": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+    ],
+    "lbls": [
+        "1 trial",
+        "2 trials",
+        "4 trials",
+        "8 trials",
+        "16 trials",
+        "32 trials",
+        "64 trials"
+    ],
+    "notes": null
+}

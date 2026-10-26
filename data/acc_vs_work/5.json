@@ -1,0 +1,33 @@
+{
+    "mat_name": "bcsstk07",
+    "mat_shape": [
+        420,
+        420
+    ],
+    "is_sparse": true,
+    "snd_moment_norm": 1.6579976886623669,
+    "snd_moment_nnz": 23660,
+    "max_iter": 131072,
+    "tol": 0,
+    "seed": 7,
+    "num_avg": 32,
+    "n_binom_trials": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+    ],
+    "lbls": [
+        "1 trial",
+        "2 trials",
+        "4 trials",
+        "8 trials",
+        "16 trials",
+        "32 trials",
+        "64 trials"
+    ],
+    "notes": null
+}
