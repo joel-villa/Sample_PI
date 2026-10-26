@@ -16,7 +16,7 @@ import scipy
 import ssgetpy
 
 from ..MatGetter import MatGetter
-from ..util import SparseFormat
+from ..util.SparseFormat import SparseFormat
 
 
 class SSGetter(MatGetter):
@@ -24,7 +24,7 @@ class SSGetter(MatGetter):
     A wrapper for the ssgetpy library
     """
 
-    format: SparseFormat.SparseFormat
+    format: SparseFormat
 
     nzbounds: tuple[int, int]
     limit: int | None
@@ -40,7 +40,7 @@ class SSGetter(MatGetter):
     def __init__(
         self,
         preprocess_data: bool,
-        format: SparseFormat.SparseFormat,
+        format: SparseFormat,
         nzbounds: tuple[int, int],
         limit: int | None = None,
         rowbounds: tuple[int, int] | None = None,
@@ -53,7 +53,7 @@ class SSGetter(MatGetter):
         """The initializer for the SSGetter
 
         Args:
-            format (SparseFormat.SparseFormat): The sparse format (COO, CSR, or CSC)
+            format (SparseFormat): The sparse format (COO, CSR, or CSC)
             nzbounds (tuple[int, int]): The bounds on number of nonzeroes used,
             limit (int | None): The maximum number of matrices to load at once
             rowbounds (tuple[int, int] | None): The bounds on the row count
@@ -117,7 +117,7 @@ class SSGetter(MatGetter):
             # Now, read the extracted matrix file using mmread and return it in coo
             return scipy.io.mmread(extracted_path)
         else:
-            warn(f"Matrix {ss_matrix.name} is not in .tar.gz format.")
+            warn(f"Matrix {ss_matrix.name} is not in .tar.gz format.") #TODO: this is how to get the name
         return None
 
     def check_mat(
@@ -134,21 +134,20 @@ class SSGetter(MatGetter):
         # TODO: rest of error checking
         raise NotImplementedError
 
-    def get(
+    def get_ss_mat(
         self,
-        kwargs: dict[str, Any] | None = None,
-    ) -> scipy.sparse.sparray | np.ndarray | None:
-        """Get a matrix based on its key word arguments
+        mat_name: str | None,
+    ) -> ssgetpy.matrix.Matrix | None:
+        """Get the suite sparse matrix
 
         Args:
-            kwargs (dict): The key word arguments for generating the matrix
+            mat_name (str | None): The name of the matrix in question
 
         Returns:
-             mat ([scipy.sparse.sparray | np.ndarray, dict] | None): The matrix
-             gotten
-        """
-        matrix: scipy.sparse.sparray | None = None
-        if kwargs is None:
+             ss_matrix (ssgetpy.matrix.Matrix): The Matrix object
+	    """
+        ss_matrix: scipy.sparse.sparray | None = None
+        if mat_name is None:
             if self.mat_queue.empty():
                 # empty queue -> get stuff using ssgetpy
                 ss_mats = ssgetpy.search(
@@ -161,47 +160,84 @@ class SSGetter(MatGetter):
                     kind=self.kind,
                     limit=self.limit,
                 )
-
                 for ss_mat in ss_mats:
                     self.mat_queue.put(
                         item=ss_mat,
                         block=False,
                     )
-                ss_matrix = self.mat_queue.get(block=False)
-                matrix = self.load_mat(ss_matrix=ss_matrix)
-            else:
-                # Have stuff in queue, get it
-                ss_matrix = self.mat_queue.get(block=False)
-                matrix = self.load_mat(ss_matrix=ss_matrix)
+
+            # Have stuff in queue, get it
+            ss_matrix = self.mat_queue.get(block=False)
         else:
             # Searching by name
-            mat_name = kwargs.get("name")
-            if mat_name:
-                ss_mat = ssgetpy.search(mat_name)[0]
-                matrix = self.load_mat(ss_mat)
+            ss_matrix = ssgetpy.search(mat_name)[0]
 
+        return ss_matrix
+
+    def ssget(
+        self,
+        mat_name: str | None,
+    ) -> tuple[str, scipy.sparse.sparray] | None:
+        """Get a matrix based on its key word arguments
+
+        Args:
+            kwargs (dict): The key word arguments for generating the matrix
+
+        Returns:
+            mat_name (str): The matrix name
+            mat (scipy.sparse.sparray): The matrix
+            gotten
+        """
+        ss_matrix = self.get_ss_mat(mat_name=mat_name)
+        if ss_matrix is None:
+            return None
+
+        matrix = self.load_mat(ss_matrix=ss_matrix)
         if matrix is None:
             return None
 
         match self.format:
-            case SparseFormat.SparseFormat.COO:
+            case SparseFormat.COO:
                 matrix = matrix.tocoo()
-            case SparseFormat.SparseFormat.CSC:
+            case SparseFormat.CSC:
                 matrix = matrix.tocsc()
-            case SparseFormat.SparseFormat.CSR:
+            case SparseFormat.CSR:
                 matrix = matrix.tocsr()
             case _:
                 warn(f"Unexpected sparse format: {self.format}")
                 return None
 
         self.check_mat(matrix)
+        return ss_matrix.name, matrix
 
-        return matrix
-
-    def preprocess(
+    def get(
         self,
-        matrix: scipy.sparse.sparray | np.ndarray,
-    ) -> tuple[scipy.sparse.sparray | np.ndarray, float]:
+        kwargs: dict[str, Any] | None = None,
+    ) -> scipy.sparse.sparray | np.ndarray | None:
+        """Get a matrix based on its key word arguments
+
+        Args:
+            kwargs (dict): The key word arguments for generating the matrix
+
+        Returns:
+            mat (scipy.sparse.sparray | np.ndarray | None): The matrix
+            gotten
+        """
+        mat_name = None
+        if kwargs:
+            mat_name = kwargs.get('mat_name')
+
+        ss_result = self.ssget(mat_name=mat_name)
+
+        if ss_result is None:
+            return None
+
+        return ss_result[1]
+
+    def get_preprocessed(
+        self,
+        mat_name: str | None,
+    ) -> tuple[scipy.sparse.sparray, float] | None:
         """Get A scaled by a factor of 1/max_i(||a_i||)
 
         Args:
@@ -211,10 +247,12 @@ class SSGetter(MatGetter):
             matrix (scipy.sparse): the matrix in sparse format
             max_row_magnitude (float): the scaling factor
         """
-        if type(matrix) not in SparseFormat.TYPES:
-            raise TypeError(f"Incorrect type of matrix: {type(matrix)}")
+        ss_result = self.ssget(mat_name=mat_name)
+        if ss_result is None:
+            return None
+        mat_name, matrix = ss_result
 
-        elif matrix.data.dtype not in {np.float32, np.float64}:
+        if matrix.data.dtype not in {np.float32, np.float64}:
             if matrix.data.dtype not in {np.int32, np.int64}:
                 raise TypeError(f"Unexpected Type: {matrix.data.dtype}")
             matrix.data = matrix.data.astype(float)
@@ -235,7 +273,7 @@ class SSGetter(MatGetter):
 def main() -> None:
     ss_getter = SSGetter(
         preprocess_data=True,
-        format=SparseFormat.SparseFormat.CSR,
+        format=SparseFormat.CSR,
         nzbounds=(1000, 100000),
     )
     sparse_mat = ss_getter.get({"name": "494_bus"})
