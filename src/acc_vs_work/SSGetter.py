@@ -46,7 +46,6 @@ class SSGetter(MatGetter):
 
     def __init__(
         self,
-        preprocess_data: bool,
         format: SparseFormat,
         nzbounds: tuple[int, int],
         limit: int | None = None,
@@ -70,9 +69,6 @@ class SSGetter(MatGetter):
             group (str | None): The group of matrices
             kind (str | None): Kind of matrix
         """
-        # Call to Parent's __init__()
-        super().__init__(preprocess_data)
-
         if dtype is not None and dtype not in {"real", "complex", "binary"}:
             warn(f"Likely an erroneous dtype: {dtype}")
 
@@ -349,7 +345,6 @@ class SSGetter(MatGetter):
 
 def main() -> None:
     ss_getter = SSGetter(
-        preprocess_data=True,
         format=SparseFormat.CSR,
         nzbounds=(1000, 100000),
     )
