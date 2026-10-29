@@ -5,53 +5,10 @@ import scipy
 from tqdm import tqdm
 
 from src.acc_vs_work.AccWorkResult import AccWorkResult
+from src.acc_vs_work.Calculator import Calculator
 from src.acc_vs_work.SSGetter import SSGetter
 from src.Test import Test
 from src.util.ResultType import ResultType
-
-
-def baseline(
-    A: scipy.sparse.sparray,
-    v0: np.ndarray,
-    max_iter: int,
-    tol: float,
-) -> tuple[np.ndarray, np.ndarray, str]:
-    """Run the default power iteration on this matrix
-
-    Args:
-        A: the original matrix
-        v0: initial guess for top eigenvector
-        max_iter: maximum number of iterations to do power iteration
-        tol (float): how much precision before terminating power
-
-    Returns:
-        tuple [np.ndarray, np.ndarray, str]:
-        np.ndarray: the x-values (the ammount of work done),
-        np.ndarray: the y-values (the score of the vector),
-        str: the string representation of this test
-    """
-    v = v0
-    scores, _, iter = comp.init_test(
-        A=A,
-        v0=v0,
-        max_iter=max_iter,
-    )
-    while iter < max_iter:
-        lam, v = power(
-            A=A,
-            v0=v,
-            num_iter=1,
-        )
-        scores[iter] = lam
-        if comp.terminate_power(scores[iter - 1], scores[iter], tol):
-            iter += 1
-            break
-        iter += 1
-
-    scores = scores[0:iter]
-    power_wrk = work.power_work(matrix=A, num_iter=iter)
-    lbl = "baseline"
-    return power_wrk, scores, lbl
 
 
 class AccWorkTest(Test):
@@ -122,6 +79,51 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
+    def baseline(
+        self,
+        A: scipy.sparse.sparray,
+        v0: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, str]:
+        """Run the default power iteration on this matrix
+
+        Args:
+            A: the original matrix
+            v0: initial guess for top eigenvector
+
+        Returns:
+            tuple [np.ndarray, np.ndarray, str]:
+                np.ndarray: the x-values (the ammount of work done),
+                np.ndarray: the y-values (the score of the vector),
+                str: the string representation of this test
+        """
+        v = v0
+        scores, _, iter = comp.init_test(
+            A=A,
+            v0=v0,
+            max_iter=self.max_iter,
+        )
+        while iter < self.max_iter:
+            lam, v = power(
+                A=A,
+                v0=v,
+                num_iter=1,
+            )
+            scores[iter] = lam
+            if comp.terminate_power(scores[iter - 1], scores[iter], self.tol):
+                iter += 1
+                break
+                iter += 1
+
+        scores = scores[0:iter]
+        calculator = Calculator()
+        power_wrk = calculator.work_power(
+            matrix=A,
+            num_iter=iter,
+        )
+        lbl = "baseline"
+        return power_wrk, scores, lbl
+
+
     def __binomial_test(
         self,
         A: scipy.sparse.sparray,
@@ -153,8 +155,10 @@ class AccWorkTest(Test):
             num_trials=num_trials,
             rng=rng,
         )
-        init_work = work.work_binomial(  # TODO: work calculator
-            A=A, is_distributed=is_distributed
+        calculator = Calculator()
+        init_work = calculator.work_prep_binomial(  # TODO: work calculator
+            matrix=A,
+            is_distributed=is_distributed
         )
 
         xs, ys = test(
@@ -200,12 +204,13 @@ class AccWorkTest(Test):
                 str: the string representation of this test
         """
         xs, ys, lbl = baseline(
-            A=A.transpose() @ A, v0=v0, max_iter=self.max_iter, tol=self.tol
+            A=A.transpose() @ A, v0=v0,
         )
 
         # Add initial work
-        init_work = work.work_baseline(
-            A=A,
+        calculator = Calculator()
+        init_work = calculator.work_prep_baseline(
+            matrix=A,
             is_distributed=is_distributed,
         )
         xs += init_work
