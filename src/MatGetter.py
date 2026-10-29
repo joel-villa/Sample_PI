@@ -17,21 +17,6 @@ import scipy
 class MatGetter(ABC):
     """For loading matrices"""
 
-    preprocess_data: bool
-
-    def __init__(
-        self,
-        preprocess_data: bool,
-    ) -> None:
-        """Initialize a Matrix Getter
-
-        Args:
-            preprocesss_data (bool): True -> apply scaling, False -> don't
-
-        """
-        super().__init__()
-        self.preprocess_data = preprocess_data
-
     @abstractmethod
     def get(
         self,
