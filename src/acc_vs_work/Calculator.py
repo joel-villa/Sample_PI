@@ -1,12 +1,16 @@
 """For some repeated calculations (ex: work)"""
 
-import scipy
-import numpy as np
 import warnings
+
+import numpy as np
+import scipy
+
 
 class Calculator:
     """For doing some matrix involved calculations"""
+
     matrix: scipy.sparse.sparray
+
     def __init__(
         self,
         matrix: scipy.sparse.sparray,
@@ -20,7 +24,7 @@ class Calculator:
 
     def power_work(
         self,
-            num_iter: int,
+        num_iter: int,
     ) -> np.ndarray:
         """The amount of cummulative work done at every iteration of Power on the
         given matrix
@@ -35,12 +39,12 @@ class Calculator:
         """
         nnzs = matrix.nnz
         iterations = np.arange(0, num_iter)
-        total_work = iterations * nnzs # Doing SpMv multiplication per iteration
+        total_work = iterations * nnzs  # Doing SpMv multiplication per iteration
         return total_work
 
     def prep_work_baseline(
         self,
-            is_distributed:bool,
+        is_distributed: bool,
     ) -> int:
         """The number of scalar mults to compute A^TA
 
@@ -56,23 +60,28 @@ class Calculator:
         Returns:
             int: Number of scalar multsf
         """
-        if type(self.matrix) != scipy.sparse.csr_array and type(self.matrix) != scipy.sparse._csr.csr_matrix:
+        if (
+            type(self.matrix) != scipy.sparse.csr_array
+            and type(self.matrix) != scipy.sparse._csr.csr_matrix
+        ):
             warnings.warn(f"A must be CSR, given {type(self.matrix)}")
 
         row_nnzs = np.diff(self.matrix.indptr)
         row_work = row_nnzs * row_nnzs
 
-        assert row_nnzs.shape[0] == self.matrix.shape[0] #TODO: delete this after sure it is workign
+        assert (
+            row_nnzs.shape[0] == self.matrix.shape[0]
+        )  # TODO: delete this after sure it is workign
 
-        if is_distributed: #TODO: have return both, get rid of is_distributed
+        if is_distributed:  # TODO: have return both, get rid of is_distributed
             return np.max(row_work)
 
         return np.sum(row_work)
 
     def prep_work_naive(
         self,
-        num_tirals:int,
-        is_distributed:bool,
+        num_tirals: int,
+        is_distributed: bool,
     ) -> int:
         """Calculate ammount of work (scalar mults) involved in computing this
         average in a naive way
@@ -93,14 +102,18 @@ class Calculator:
         Returns:
             int: amount of scalar mults
         """
-        mults_per_iter = self.matrix.nnz + self.matrix.shape[0] + self.matrix.nnz * self.matrix.shape[0]
+        mults_per_iter = (
+            self.matrix.nnz
+            + self.matrix.shape[0]
+            + self.matrix.nnz * self.matrix.shape[0]
+        )
         if is_distributed:
             return mults_per_iter
         return num_tirals * mults_per_iter
 
     def prep_work_binomial(
         self,
-        is_distributed:bool,
+        is_distributed: bool,
     ) -> int:
         """Calculate ammount of work required to do the parallelizable calculation
         of an averaged approximation of A^TA
@@ -127,11 +140,12 @@ class Calculator:
             is_distributed=is_distributed,
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """Yeahhh
     """
-    from .SSGetter import SSGetter
     from ..util.SparseFormat import SparseFormat
+    from .SSGetter import SSGetter
 
     mats = [
         "1138_bus",
@@ -160,13 +174,13 @@ if __name__ == '__main__':
         "tomography",
     ]
 
-    mats = sorted(mats) #Alphabetical order
+    mats = sorted(mats)  # Alphabetical order
     ss_getter = SSGetter(
         format=SparseFormat.CSR,
         nzbounds=(1000, 100000),
     )
     print("Starting work calculations...")
-    N=8
+    N = 8
     for mat in mats:
         print(mat)
         matrix = ss_getter.get_preprocessed(mat)
@@ -182,19 +196,11 @@ if __name__ == '__main__':
             is_distributed=True,
         )
         print(f"Work Naive (distributed): {work}")
-        work = calculator.prep_work_binomial(
-            is_distributed=False
-        )
+        work = calculator.prep_work_binomial(is_distributed=False)
         print(f"Work Binomial (non distributed): {work}")
-        work = calculator.prep_work_binomial(
-            is_distributed=True
-        )
+        work = calculator.prep_work_binomial(is_distributed=True)
         print(f"Work Binomial (distributed): {work}")
-        work = calculator.prep_work_baseline(
-            is_distributed=False
-        )
+        work = calculator.prep_work_baseline(is_distributed=False)
         print(f"Work Binomial (non distributed): {work}")
-        work = calculator.prep_work_baseline(
-            is_distributed=True
-        )
+        work = calculator.prep_work_baseline(is_distributed=True)
         print(f"Work Binomial (distributed): {work}")
