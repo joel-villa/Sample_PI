@@ -75,9 +75,12 @@ class Power:
         while i < max_iter:
             # Compute Ax
             v = self.matrix @ v
+            norm = np.linalg.norm(v)
 
-            # Normalize to get next eigenvector approximation
-            v = v / np.linalg.norm(v)
+            if norm == 0 or not np.isfinite(norm):
+                raise ValueError(f"Breakdown at iteration {i}")
+
+            v = v / norm
 
             scores[i] = (
                 self.__rayleigh_quotient(  # Score of approximation based on actual
@@ -86,7 +89,7 @@ class Power:
                 )
             )
             if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol) or (
-                scores[i - 1] > scores[0]
+                scores[i - 1] > scores[i]
             ):
                 i += 1
                 break
