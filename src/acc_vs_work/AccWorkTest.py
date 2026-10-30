@@ -5,10 +5,14 @@ import scipy
 from tqdm import tqdm
 
 from src.acc_vs_work.AccWorkResult import AccWorkResult
-from src.acc_vs_work.Calculator import Calculator
+from src.acc_vs_work.util.Approximator import Approximator
+from src.acc_vs_work.util.ReductionType import ReductionType
+from src.acc_vs_work.util.WorkCalculator import WorkCalculator
 from src.acc_vs_work.SSGetter import SSGetter
 from src.Test import Test
+from src.acc_vs_work.util.Power import Power
 from src.util.ResultType import ResultType
+from src.util.SparseFormat import SparseFormat
 
 
 class AccWorkTest(Test):
@@ -16,41 +20,29 @@ class AccWorkTest(Test):
 
     result_type: ResultType
     mat_getter: SSGetter
-    log_y: bool
-    run_length_type: int
-    num_avg: int
     mats: list[str]
-    on_easley: bool
-    max_iter: int
-    tol: float
-    seed: int
     num_trials: list[int]
+    tol: float
+    num_avg: int
+    max_iter: int
+    seed: int
 
     def __init__(
         self,
         result_type: ResultType,
         mat_getter: SSGetter,
-        log_y: bool,
-        run_length_type: int,
-        num_avg: int,
         mats: list[str],
-        on_easley: bool,
-        max_iter: int,
-        tol: float,
-        seed: int,
         num_trials: list[int],
+        tol: float,
+        num_avg: int,
+        max_iter: int,
+        seed: int,
     ) -> None:
         """Create a Result object
 
         Args:
             result_type (ResultType): The type of result for this test
             mat_getter (SSGetter): For generating matrices for this test
-            log_y (bool): Y-axis of plot log scaled?
-            run_length_type (int): When averaging variable length sequences, must choose
-            to average over all or part of them.
-                1 -> average over those that exist for all trials
-                2 -> average over the median num trials
-                3 -> average over all (the outlier longest will be weighted 100%)
             num_avg (int): The number averaged in the result (to reduce noise) # TODO
             mats (list[str]): The matrices to test
             on_easley (bool): on_easley ->  don't display, not on_easly -> display!
@@ -69,60 +61,12 @@ class AccWorkTest(Test):
         )
         self.result_type = result_type
         self.mat_getter = mat_getter
-        self.log_y = log_y
-        self.run_length_type = run_length_type
         self.num_avg = num_avg
         self.mats = mats
-        self.on_easley = on_easley
         self.max_iter = max_iter
         self.tol = tol
         self.seed = seed
         self.num_trials = num_trials
-
-    def baseline(
-        self,
-        A: scipy.sparse.sparray,
-        v0: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray, str]:
-        """Run the default power iteration on this matrix
-
-        Args:
-            A: the original matrix
-            v0: initial guess for top eigenvector
-
-        Returns:
-            tuple [np.ndarray, np.ndarray, str]:
-                np.ndarray: the x-values (the ammount of work done),
-                np.ndarray: the y-values (the score of the vector),
-                str: the string representation of this test
-        """
-        v = v0
-        scores, _, iter = comp.init_test(
-            A=A,
-            v0=v0,
-            max_iter=self.max_iter,
-        )
-        while iter < self.max_iter:
-            lam, v = power(
-                A=A,
-                v0=v,
-                num_iter=1,
-            )
-            scores[iter] = lam
-            if comp.terminate_power(scores[iter - 1], scores[iter], self.tol):
-                iter += 1
-                break
-                iter += 1
-
-        scores = scores[0:iter]
-        calculator = Calculator()
-        power_wrk = calculator.work_power(
-            matrix=A,
-            num_iter=iter,
-        )
-        lbl = "baseline"
-        return power_wrk, scores, lbl
-
 
     def __binomial_test(
         self,
@@ -150,35 +94,37 @@ class AccWorkTest(Test):
             lbl (str): label of this test
         """
         rng = np.random.default_rng(seed=self.seed)
-        tilde_A_sq = binomial_A_tilde_sq(
-            A=A,
-            num_trials=num_trials,
-            rng=rng,
-        )
-        calculator = Calculator()
-        init_work = calculator.work_prep_binomial(  # TODO: work calculator
-            matrix=A,
-            is_distributed=is_distributed
+        reduct_type =ReductionType.SND_MOMENT_BINOMIAL
+
+        approximator = Approximator(A, rng)
+        tilde_A_sq = approximator.generate(
+            reduct_type=reduct_type,
+            n_trials=num_trials,
         )
 
-        xs, ys = test(
-            A_sq=A.transpose() @ A,
-            tilde_A_sq=tilde_A_sq,
+        power = Power(
+            matrix=tilde_A_sq,
+        )
+        scores = power.test(
             v0=v0,
             max_iter=self.max_iter,
             tol=self.tol,
-            init_work=init_work,
+            goal_mat=A.transpose @ A,
         )
 
-        #    lbl = f"binomial (distributed={is_distributed}), {num_trials} trials"
+        calculator = WorkCalculator(
+            matrix=tilde_A_sq,
+            reduct_type=reduct_type,
+            is_distributed=is_distributed,
+        )
+        work = calculator.calculate(scores.shape[0])
+
         if num_trials == 1:
             lbl = f"{num_trials} trial"
         else:
             lbl = f"{num_trials} trials"
 
-        #    print(f"xs[:8]: {xs[:8]}")
-
-        return xs, ys, tilde_A_sq.nnz, lbl
+        return work, scores, tilde_A_sq.nnz, lbl
 
     def __baseline_pays(
         self,
@@ -203,25 +149,42 @@ class AccWorkTest(Test):
                 np.ndarray: the y-values (the score of the vector),
                 str: the string representation of this test
         """
-        xs, ys, lbl = baseline(
-            A=A.transpose() @ A, v0=v0,
+        matrix = A.transpose() @ A
+        power = Power(
+            matrix=matrix,
+        )
+        scores = power.test(
+            v0=v0,
+            max_iter=self.max_iter,
+            tol=self.tol,
         )
 
         # Add initial work
-        calculator = Calculator()
-        init_work = calculator.work_prep_baseline(
-            matrix=A,
-            is_distributed=is_distributed,
-        )
-        xs += init_work
+        calculator = WorkCalculator(
+                            matrix=matrix,
+                            reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
+                            is_distributed=is_distributed,
+                        )
+        work = calculator.calculate(num_iter=scores.shape[0])
+        return work, scores, "baseline"
 
-        #    return xs, ys, f"{lbl} (is_distributed={is_distributed})"
-        return xs, ys, lbl
+    def run_test(
+        self,
+        disp_result: bool = False,
+        log_y: bool = True,
+        run_length_type: int = 2,
+    ) -> None:
+        """Run the test with some display parameters
 
-    def run(self) -> None:
-        """Run the test!"""
-        # TODO: this guy
-
+        Args:
+            disp_results (bool): Display results?
+            log_y (bool): Y-axis of plot log scaled?
+            run_length_type (int): When averaging variable length sequences,
+            must choose to average over all or part of them:
+                1 -> average over those that exist for all trials
+                2 -> average over the median num trials
+                3 -> average over all (the outlier longest will be weighted 100%)
+	    """
         for mat in self.mats:
             print(mat)
             matrix = self.mat_getter.get_preprocessed(mat_name=mat)
@@ -292,6 +255,76 @@ class AccWorkTest(Test):
                 accuracies=accuracies,
             )
             file_id = result.save_results()
-            if not self.on_easley:
+            if disp_result:
                 result = AccWorkResult(file_id=file_id)
-                result.display_results(log_y=True, run_length_type=self.run_length_type)
+                result.display_results(log_y=log_y, run_length_type=run_length_type)
+
+    def run(self) -> None:
+        """Run the test!"""
+        self.run_test()
+
+if __name__ == '__main__':
+    """For testing purporses"""
+    mats = [
+        "1138_bus",
+        "494_bus",
+        "Harvard500",
+        "bcspwr06",
+        "bcsstk07",
+        "bcsstk08",
+        "bcsstk19",
+        "bcsstk34",
+        "bcsstm07",
+        "blckhole",
+        "cage7",
+        "can_229",
+        "dwt_193",
+        "eris1176",
+        "ex2",
+        "fs_541_1",
+        "gre_1107",
+        "gre_343",
+        "hor_131",
+        "lshp1561",
+        "msc00726",
+        "nasa1824",
+        "nos3",
+        "tomography",
+    ]
+
+    mats = sorted(mats) #Alphabetical order
+    tol=0 # tolerance of zero -> machine percision
+    max_iter = 2 ** 17 # 131, 072
+    num_avg=32
+    seed = 7
+
+    Ns = [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+    ]
+
+    ss_getter = SSGetter(
+            format=SparseFormat.CSR,
+            nzbounds=(1000, 100000),
+        )
+
+    test = AccWorkTest(
+        result_type=ResultType.ACC_VS_WORK,
+        mat_getter=ss_getter,
+        mats=mats,
+        num_trials=Ns,
+        tol=tol,
+        num_avg=num_avg,
+        max_iter=max_iter,
+        seed=seed,
+    )
+    test.run_test(
+        disp_result=True,
+        log_y=True,
+        run_length_type=2,
+    )
