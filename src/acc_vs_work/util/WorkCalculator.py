@@ -9,34 +9,43 @@ from src.acc_vs_work.util.ReductionType import ReductionType
 class WorkCalculator:
     """For doing some matrix involved calculations"""
 
-    matrix: scipy.sparse.sparray
+    shape: tuple[int, int]
+    nnz: int
+    row_nnzs: np.ndarray
     reduct_type: ReductionType
     is_distributed: bool
     n_trials: int
 
     def __init__(
         self,
-        matrix: scipy.sparse.sparray,
         reduct_type: ReductionType,
         is_distributed: bool,
+        matrix: scipy.sparse.sparray | None = None,
+        shape: tuple[int, int] | None = None,
+        nnz: int | None = None,
+        row_nnzs: np.ndarray | None = None,
     ) -> None:
         """Intiliaze a matrix calculator
 
         Args:
             matrix (scipy.sparse.sparray): The matrix in question
         """
-        self.matrix = matrix
         self.reduct_type = reduct_type
         self.is_distributed = is_distributed
         self.n_trials = -1
 
-    def __row_nnzs(self) -> np.ndarray:
-        """The number of nonzeroes per each row in the matrix
-
-        Returns:
-             row_nnzs (np.ndarray): The number of nonzeroes per row in the matrix
-        """
-        return np.diff(self.matrix.indptr)
+        if matrix is not None:
+            self.shape = matrix.shape
+            self.nnz = matrix.nnz
+            self.row_nnzs = np.diff(matrix.indptr)
+        else:
+            if shape is None or nnz is None or row_nnzs is None:
+                raise ValueError("If no matrix provided, parameters must be specified")
+            if np.sum(row_nnzs) != nnz:
+                raise ValueError(f"sum(row_nnzs) = {np.sum(row_nnzs)} != {nnz} = nnz")
+            self.shape = shape
+            self.nnz = nnz
+            self.row_nnzs = row_nnzs
 
     def __work_power(
         self,
@@ -52,13 +61,11 @@ class WorkCalculator:
             np.ndarray: A linearly increasing one-dimensional array of length
             num_iter
         """
-        row_work = self.__row_nnzs()
-
         work_per_iter = 0
         if self.is_distributed:
-            work_per_iter = np.max(row_work)
+            work_per_iter = np.max(self.row_nnzs)
         else:
-            work_per_iter = np.sum(row_work)
+            work_per_iter = np.sum(self.row_nnzs)
 
         iterations = np.arange(0, num_iter)
         total_work = (
@@ -80,8 +87,7 @@ class WorkCalculator:
                 The i'th row contributes w_i^2, where w_i is the nnz's in the
                 i'th row
         """
-        row_nnzs = self.__row_nnzs()
-        row_work = row_nnzs * row_nnzs
+        row_work = self.row_nnzs * self.row_nnzs
 
         if self.is_distributed:  # TODO: have return both, get rid of is_distributed
             return np.max(row_work)
@@ -110,9 +116,9 @@ class WorkCalculator:
             int: amount of scalar mults
         """
         mults_per_iter = (
-            self.matrix.nnz
-            + self.matrix.shape[0]
-            + self.matrix.nnz * self.matrix.shape[0]
+            self.nnz
+            + self.shape[0]
+            + self.nnz * self.shape[0]
         )
         if self.is_distributed:
             return mults_per_iter
