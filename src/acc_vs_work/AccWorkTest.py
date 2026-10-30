@@ -108,7 +108,7 @@ class AccWorkTest(Test):
             v0=v0,
             max_iter=self.max_iter,
             tol=self.tol,
-            goal_mat=A.transpose @ A,
+            goal_mat=A.transpose() @ A,
         )
 
         calculator = WorkCalculator(
