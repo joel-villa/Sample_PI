@@ -31,7 +31,8 @@ machine, at the root in the .ssgetpy directory
 ### Empirical
 
 - [ ] First moment average (plus proof to come)
-- [ ] Finish objectifying things (*man noises*)
+- [x] Finish objectifying things (*man noises*)
+- [ ] Move Work calculator inside of results :D
 - [ ] Test on dense matrices (are there power-law drop off dense matrices)
 - [ ] Do norms impact performance? Why are some not seeing gains?
 - [ ] Run on CARC:
@@ -40,8 +41,8 @@ machine, at the root in the .ssgetpy directory
     - [ ] Solution: do 20 randomly selected mats dense & sparse alike
   - [ ] Run on large matrices!
 - [ ] Convergence vs. Work graph + line for bounds on $(1 \pm \epsilon)||A||$
-- [ ] Make code strongly typed and redo doc comments
-- [ ] Move two_norm.npz handling into proven/util/npz_wrapper.py
+- [x] Make code strongly typed and redo doc comments
+- [x] Move two_norm.npz handling into proven/util/npz_wrapper.py
 
 ### Theory
 
