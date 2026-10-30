@@ -1,8 +1,8 @@
 """Generates matrix approximations"""
 
+import numpy as np
 import scipy
 from scipy.sparse import diags
-import numpy as np
 
 from src.acc_vs_work.util.ReductionType import ReductionType
 
@@ -11,6 +11,7 @@ from ...util.constants import THIRTY_TWO_BIT_PRECISION
 
 class Approximator:
     """For generating approximations of a matrix"""
+
     matrix: scipy.sparse.sparray
     rng: np.random.Generator
 
@@ -19,13 +20,13 @@ class Approximator:
 
         Args:
             matrix (scipy.sparse.sparray): Matrix to approximate
-	    """
+        """
         self.matrix = matrix
         self.rng = rng
 
     def __get_next_diagonal_sampler(
         self,
-            row_norms: np.ndarray,
+        row_norms: np.ndarray,
     ) -> np.ndarray:
         """Get the vector that represents a diagonal matrix which randomly
         samples those columns of A
@@ -37,20 +38,21 @@ class Approximator:
         Returns:
             np.ndarray: The vector which represents a random diagonal sampling
             matrix
-        """ #TODO
+        """  # TODO
         binomial_vals = self.rng.binomial(n=1, p=row_norms)
         scaled_vals = binomial_vals / np.sqrt(row_norms)
 
         # print(f"row_norms: {row_norms[0:10]}")
         # print(f"binomial_vals: {binomial_vals[0:10]}")
         # print(f"scaled_vals: {scaled_vals[0:10]}")
-        assert np.all((scaled_vals >= 1) | (scaled_vals == 0)) #TODO: can be deleted after testing once
+        assert np.all(
+            (scaled_vals >= 1) | (scaled_vals == 0)
+        )  # TODO: can be deleted after testing once
         return scaled_vals
-
 
     def __get_diag_mat(
         self,
-            row_norms: np.ndarray,
+        row_norms: np.ndarray,
     ) -> scipy.sparse.sparray:
         """Get an independent copy of the random diagonal matrix which serves the
         purpose of matrix sampling
@@ -69,7 +71,7 @@ class Approximator:
 
     def __round_row_norms(
         self,
-            row_norms:np.ndarray,
+        row_norms: np.ndarray,
     ) -> np.ndarray:
         """Check that the row_norms are not errorneous, if they have slight
         rounding error, round them to one or zero where appropriate
@@ -82,8 +84,12 @@ class Approximator:
             np.ndarray: The row_norms which should be used
         """
         # Ensure row norms are valid
-        assert np.all(row_norms <= 1 + THIRTY_TWO_BIT_PRECISION), f"max row norm: {np.max(row_norms)}"
-        assert np.all(row_norms >= 0 - THIRTY_TWO_BIT_PRECISION), f"min row norm: {np.min(row_norms)}"
+        assert np.all(row_norms <= 1 + THIRTY_TWO_BIT_PRECISION), (
+            f"max row norm: {np.max(row_norms)}"
+        )
+        assert np.all(row_norms >= 0 - THIRTY_TWO_BIT_PRECISION), (
+            f"min row norm: {np.min(row_norms)}"
+        )
 
         idx_too_large = [idx for idx, val in enumerate(row_norms) if val > 1]
         idx_too_small = [idx for idx, val in enumerate(row_norms) if val < 0]
@@ -103,7 +109,7 @@ class Approximator:
 
         Returns:
             np.ndarray: The row magnitudes of every row in Af
-            """
+        """
 
         row_mags = np.asarray(scipy.sparse.linalg.norm(self.matrix, ord=2, axis=1))
         row_mags = self.__round_row_norms(row_norms=row_mags)
@@ -141,14 +147,14 @@ class Approximator:
                 scipy.sparse.csr_array: a zeros array
                 np.ndarray: the row_norms of A
         """
-        zeros = scipy.sparse.csr_array(self.matrix.shape) # zeros sparse array
+        zeros = scipy.sparse.csr_array(self.matrix.shape)  # zeros sparse array
         row_norms = self.__get_row_norms()
 
         return zeros, row_norms
 
     def __naive_A_tilde_sq(
         self,
-            num_trials:int,
+        num_trials: int,
     ) -> scipy.sparse.sparray:
         """Generate ~A^TA in a naive (non-paralellizable) way
         NOTE: ~A^TA = 1/N sum_{i=1}^N A^T D_i A
@@ -168,13 +174,19 @@ class Approximator:
             diag_i = self.__get_diag_mat(
                 row_norms=row_norms,
             )
-            approximation += (1 / num_trials) * self.matrix.transpose() @ diag_i @ diag_i @ self.matrix
+            approximation += (
+                (1 / num_trials)
+                * self.matrix.transpose()
+                @ diag_i
+                @ diag_i
+                @ self.matrix
+            )
 
         return approximation
 
     def __binomial_A_tilde_sq(
         self,
-            num_trials:int,
+        num_trials: int,
     ) -> scipy.sparse.sparray:
         """Generate ~A^TA in a (hopefully) more parallelizable way
 
@@ -191,11 +203,11 @@ class Approximator:
         for i in range(A.shape[0]):
             """Notice that everything that happens in this for loop is independent,
             i.e. parallizable"""
-            row_i = A[i, :] #i'th row of A
-            norm_i = row_norms[i] #magnitude of i'th row
+            row_i = A[i, :]  # i'th row of A
+            norm_i = row_norms[i]  # magnitude of i'th row
             binom = self.rng.binomial(
                 n=num_trials,
-                p=norm_i, # w.p. ||a_j||, X_ij is one
+                p=norm_i,  # w.p. ||a_j||, X_ij is one
             )
 
             scalar = binom / (num_trials * norm_i)
@@ -225,10 +237,14 @@ class Approximator:
             case _:
                 raise ValueError(f"Unexpected reduction type: {reduct_type.name}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """Yeahhh
     """
     from scipy.sparse.linalg import norm
+
+    from src.acc_vs_work.SSGetter import SSGetter
+    from src.util.SparseFormat import SparseFormat
 
     mats = [
         "1138_bus",
@@ -257,28 +273,35 @@ if __name__ == '__main__':
         "tomography",
     ]
 
-    mats = sorted(mats) #Alphabetical order
+    mats = sorted(mats)  # Alphabetical order
     print("Starting approximation tests...")
-    N=8
+    N = 8
     num_avg = 16
     print(f"N = {N}")
     print(f"num_avg = {num_avg}")
+    ss_getter = SSGetter(
+        format=SparseFormat.CSR,
+        nzbounds=(1000, 100000),
+    )
     for mat in mats:
         print(mat)
-        A, _ = preprocess(mat_name=mat)
+        A = ss_getter.get_preprocessed(mat)
         rng = np.random.default_rng(seed=5334)
         rand_vect = rng.normal(loc=0.0, scale=0.0625, size=A.shape[0])
         approximator = Approximator(A, rng)
         # Operator norm clarity check
         print(f"ACTUAL operator norm: {norm(A.transpose() @ A)}")
-        for reduct in {ReductionType.SND_MOMENT_BINOMIAL, ReductionType.SND_MOMENT_NAIVE}:
+        for reduct in {
+            ReductionType.SND_MOMENT_BINOMIAL,
+            ReductionType.SND_MOMENT_NAIVE,
+        }:
             print(f"reduct: {reduct.name}")
             avg_op_norm = 0
             for i in range(num_avg):
                 snd_mom_tilde = approximator.generate(
                     reduct_type=reduct,
                     n_trials=A,
-                ) #TODO
+                )  # TODO
                 avg_op_norm += norm(snd_mom_tilde)
             avg_op_norm = avg_op_norm / num_avg
             print(f"{avg_op_norm}")

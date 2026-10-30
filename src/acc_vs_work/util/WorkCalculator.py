@@ -1,7 +1,5 @@
 """For some repeated calculations (ex: work)"""
 
-import warnings
-
 import numpy as np
 import scipy
 
@@ -26,7 +24,7 @@ class WorkCalculator:
 
         Args:
             matrix (scipy.sparse.sparray): The matrix in question
-	    """
+        """
         self.matrix = matrix
         self.reduct_type = reduct_type
         self.is_distributed = is_distributed
@@ -37,9 +35,8 @@ class WorkCalculator:
 
         Returns:
              row_nnzs (np.ndarray): The number of nonzeroes per row in the matrix
-	    """
+        """
         return np.diff(self.matrix.indptr)
-
 
     def __work_power(
         self,
@@ -64,7 +61,9 @@ class WorkCalculator:
             work_per_iter = np.sum(row_work)
 
         iterations = np.arange(0, num_iter)
-        total_work = iterations * work_per_iter  # Doing SpMv multiplication per iteration
+        total_work = (
+            iterations * work_per_iter
+        )  # Doing SpMv multiplication per iteration
         return total_work
 
     def __work_prep_baseline(
@@ -155,7 +154,7 @@ class WorkCalculator:
 
         Returns:
              work (np.ndarray): Work done up and to that point
-	    """
+        """
         init_work = 0
 
         match self.reduct_type:
@@ -165,18 +164,21 @@ class WorkCalculator:
                 init_work = self.__work_prep_binomial()
             case ReductionType.SND_MOMENT_NAIVE:
                 if self.n_trials < 0:
-                    raise ValueError("set WorkCalculator.n_trails before call to calculate")
+                    raise ValueError(
+                        "set WorkCalculator.n_trails before call to calculate"
+                    )
                 init_work = self.__work_prep_naive()
 
         work = self.__work_power(num_iter=num_iter)
 
         return work + init_work
 
+
 if __name__ == "__main__":
     """Yeahhh
     """
-    from src.util.SparseFormat import SparseFormat
     from src.acc_vs_work.SSGetter import SSGetter
+    from src.util.SparseFormat import SparseFormat
 
     mats = [
         "1138_bus",
@@ -216,9 +218,13 @@ if __name__ == "__main__":
         print(mat)
         matrix = ss_getter.get_preprocessed(mat)
 
-        for reduct_type in {ReductionType.SND_MOM_NO_REDUCTION, ReductionType.SND_MOMENT_NAIVE, ReductionType.SND_MOMENT_BINOMIAL}:
+        for reduct_type in {
+            ReductionType.SND_MOM_NO_REDUCTION,
+            ReductionType.SND_MOMENT_NAIVE,
+            ReductionType.SND_MOMENT_BINOMIAL,
+        }:
             print(f"reduct_type: {reduct_type.name}")
-            for is_dist in {True, False}:
+            for is_dist in (True, False):
                 print(f"is_dist: {is_dist}")
                 calculator = WorkCalculator(
                     matrix=matrix,

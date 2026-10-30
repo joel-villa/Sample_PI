@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+
 # class syntax
 class ReductionType(Enum):
     SND_MOM_NO_REDUCTION = 1

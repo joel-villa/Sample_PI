@@ -5,14 +5,13 @@ import scipy
 from tqdm import tqdm
 
 from src.acc_vs_work.AccWorkResult import AccWorkResult
+from src.acc_vs_work.SSGetter import SSGetter
 from src.acc_vs_work.util.Approximator import Approximator
+from src.acc_vs_work.util.Power import Power
 from src.acc_vs_work.util.ReductionType import ReductionType
 from src.acc_vs_work.util.WorkCalculator import WorkCalculator
-from src.acc_vs_work.SSGetter import SSGetter
 from src.Test import Test
-from src.acc_vs_work.util.Power import Power
 from src.util.ResultType import ResultType
-from src.util.SparseFormat import SparseFormat
 
 
 class AccWorkTest(Test):
@@ -94,7 +93,7 @@ class AccWorkTest(Test):
             lbl (str): label of this test
         """
         rng = np.random.default_rng(seed=self.seed)
-        reduct_type =ReductionType.SND_MOMENT_BINOMIAL
+        reduct_type = ReductionType.SND_MOMENT_BINOMIAL
 
         approximator = Approximator(A, rng)
         tilde_A_sq = approximator.generate(
@@ -161,10 +160,10 @@ class AccWorkTest(Test):
 
         # Add initial work
         calculator = WorkCalculator(
-                            matrix=matrix,
-                            reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
-                            is_distributed=is_distributed,
-                        )
+            matrix=matrix,
+            reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
+            is_distributed=is_distributed,
+        )
         work = calculator.calculate(num_iter=scores.shape[0])
         return work, scores, "baseline"
 
@@ -184,7 +183,7 @@ class AccWorkTest(Test):
                 1 -> average over those that exist for all trials
                 2 -> average over the median num trials
                 3 -> average over all (the outlier longest will be weighted 100%)
-	    """
+        """
         for mat in self.mats:
             print(mat)
             matrix = self.mat_getter.get_preprocessed(mat_name=mat)
@@ -263,8 +262,11 @@ class AccWorkTest(Test):
         """Run the test!"""
         self.run_test()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """For testing purporses"""
+    from src.util.SparseFormat import SparseFormat
+
     mats = [
         "1138_bus",
         "494_bus",
@@ -292,13 +294,13 @@ if __name__ == '__main__':
         "tomography",
     ]
 
-    mats = sorted(mats) #Alphabetical order
-    tol=0 # tolerance of zero -> machine percision
-    max_iter = 2 ** 17 # 131, 072
-    num_avg=32
+    mats = sorted(mats)  # Alphabetical order
+    tol = 0  # tolerance of zero -> machine percision
+    max_iter = 2**17  # 131, 072
+    num_avg = 32
     seed = 7
 
-    Ns = [
+    n_trials = [
         1,
         2,
         4,
@@ -309,15 +311,15 @@ if __name__ == '__main__':
     ]
 
     ss_getter = SSGetter(
-            format=SparseFormat.CSR,
-            nzbounds=(1000, 100000),
-        )
+        format=SparseFormat.CSR,
+        nzbounds=(1000, 100000),
+    )
 
     test = AccWorkTest(
         result_type=ResultType.ACC_VS_WORK,
         mat_getter=ss_getter,
         mats=mats,
-        num_trials=Ns,
+        num_trials=n_trials,
         tol=tol,
         num_avg=num_avg,
         max_iter=max_iter,
