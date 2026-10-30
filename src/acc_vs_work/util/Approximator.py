@@ -42,9 +42,6 @@ class Approximator:
         binomial_vals = self.rng.binomial(n=1, p=row_norms)
         scaled_vals = binomial_vals / np.sqrt(row_norms)
 
-        # print(f"row_norms: {row_norms[0:10]}")
-        # print(f"binomial_vals: {binomial_vals[0:10]}")
-        # print(f"scaled_vals: {scaled_vals[0:10]}")
         assert np.all(
             (scaled_vals >= 1) | (scaled_vals == 0)
         )  # TODO: can be deleted after testing once
@@ -275,9 +272,9 @@ if __name__ == "__main__":
 
     mats = sorted(mats)  # Alphabetical order
     print("Starting approximation tests...")
-    N = 8
+    n_trials = 8
     num_avg = 16
-    print(f"N = {N}")
+    print(f"N = {n_trials}")
     print(f"num_avg = {num_avg}")
     ss_getter = SSGetter(
         format=SparseFormat.CSR,
@@ -286,6 +283,9 @@ if __name__ == "__main__":
     for mat in mats:
         print(mat)
         A = ss_getter.get_preprocessed(mat)
+        if A is None:
+            print(f"No matrix gotten, skipping...")
+            continue
         rng = np.random.default_rng(seed=5334)
         rand_vect = rng.normal(loc=0.0, scale=0.0625, size=A.shape[0])
         approximator = Approximator(A, rng)
@@ -300,7 +300,7 @@ if __name__ == "__main__":
             for i in range(num_avg):
                 snd_mom_tilde = approximator.generate(
                     reduct_type=reduct,
-                    n_trials=A,
+                    n_trials=n_trials,
                 )  # TODO
                 avg_op_norm += norm(snd_mom_tilde)
             avg_op_norm = avg_op_norm / num_avg
