@@ -200,10 +200,10 @@ class Approximator:
         """
         approximation, row_norms = self.__init_A_tilde_sq()
 
-        for i in range(A.shape[0]):
+        for i in range(self.matrix.shape[0]):
             """Notice that everything that happens in this for loop is independent,
             i.e. parallizable"""
-            row_i = A[i, :]  # i'th row of A
+            row_i = self.matrix[i, :]  # i'th row of A
             norm_i = row_norms[i]  # magnitude of i'th row
             binom = self.rng.binomial(
                 n=num_trials,
