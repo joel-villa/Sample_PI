@@ -209,7 +209,7 @@ class Approximator:
 
             scalar = binom / (num_trials * norm_i)
             approximation += scalar * (row_i.transpose() @ row_i)
-            return approximation
+        return approximation
 
     def generate(
         self,
@@ -281,7 +281,7 @@ if __name__ == "__main__":
         nzbounds=(1000, 100000),
     )
     for mat in mats:
-        print(mat)
+        print(f"\n{mat}")
         A = ss_getter.get_preprocessed(mat)
         if A is None:
             print(f"No matrix gotten, skipping...")
