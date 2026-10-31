@@ -19,7 +19,7 @@ class Power:
         """
         self.matrix = matrix
 
-    def __rayleigh_quotient(
+    def rayleigh_quotient(
         self,
         x: np.ndarray,
         A: scipy.sparse.sparray,
@@ -42,6 +42,102 @@ class Power:
 
         return (x.T @ (A @ x)).item()
 
+
+    def run_test(
+        self,
+        v0: np.ndarray,
+        max_iter: int,
+        tol: float,
+        goal_mat: scipy.sparse.sparray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """A generic test of the accuracy of tilde_A_sq, given A_sq and other
+        informaiton for power iteration
+
+        Args:
+            A_sq (scipy.sparse.sparray): A^TA
+            tilde_A_sq (scipy.sparse.sparray): Approximation of
+            v0 (np.ndarray): initial guess for top eigenvector
+            max_iter (int): max number of iterations
+            tol (float): tolerance of power iteration
+            init_work (int): to be added to the work calculations
+
+        Returns:
+            scores (np.ndarray): score of top eigenvector approxation per
+            iteration of power
+            vects (np.ndarray): the top eigenvector approximation per iteration
+        """
+
+        if goal_mat is None:
+            goal_mat = self.matrix
+
+        scores = np.zeros(shape=(max_iter,))
+        vects = np.zeros(shape=(max_iter,v0.shape[0]))
+
+        scores[0] = self.rayleigh_quotient(x=v0, A=goal_mat)
+        vects[0] = v0
+
+        i = 1
+        v = v0
+
+        while i < max_iter:
+            # Compute Ax
+            v = self.matrix @ v
+            norm = np.linalg.norm(v)
+
+            if norm == 0 or not np.isfinite(norm):
+                raise ValueError(f"Breakdown at iteration {i}")
+
+            v = v / norm
+
+            scores[i] = (
+                self.rayleigh_quotient(  # Score of approximation based on actual
+                    A=goal_mat,
+                    x=v,
+                )
+            )
+            vects[i] = v.copy()
+            if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol) or (
+                scores[i - 1] > scores[i]
+            ):
+                i += 1
+                break
+            i += 1
+
+        scores = scores[0:i]
+
+        return scores, vects
+
+    def get_vects(
+        self,
+        v0: np.ndarray,
+        max_iter: int,
+        tol: float,
+        goal_mat: scipy.sparse.sparray | None = None,
+    ) -> np.ndarray:
+        """A generic test of the accuracy of tilde_A_sq, given A_sq and other
+        informaiton for power iteration
+
+        Args:
+            A_sq (scipy.sparse.sparray): A^TA
+            tilde_A_sq (scipy.sparse.sparray): Approximation of
+            v0 (np.ndarray): initial guess for top eigenvector
+            max_iter (int): max number of iterations
+            tol (float): tolerance of power iteration
+            init_work (int): to be added to the work calculations
+
+        Returns:
+            scores (np.ndarray): score of top eigenvector approxation per
+            iteration of power
+            vects (np.ndarray): the top eigenvector approximation per iteration
+        """
+        _, vects = self.run_test(
+            v0=v0,
+            max_iter=max_iter,
+            tol=tol,
+            goal_mat=goal_mat,
+        )
+        return vects
+
     def test(
         self,
         v0: np.ndarray,
@@ -61,40 +157,14 @@ class Power:
             init_work (int): to be added to the work calculations
 
         Returns:
-            np.ndarray: score of top eigenvector approxation per iteration of power
+            scores (np.ndarray): score of top eigenvector approxation per
+            iteration of power
+            vects (np.ndarray): the top eigenvector approximation per iteration
         """
-
-        if goal_mat is None:
-            goal_mat = self.matrix
-
-        scores = np.zeros(shape=(max_iter,))
-        scores[0] = self.__rayleigh_quotient(x=v0, A=goal_mat)
-        i = 1
-        v = v0
-
-        while i < max_iter:
-            # Compute Ax
-            v = self.matrix @ v
-            norm = np.linalg.norm(v)
-
-            if norm == 0 or not np.isfinite(norm):
-                raise ValueError(f"Breakdown at iteration {i}")
-
-            v = v / norm
-
-            scores[i] = (
-                self.__rayleigh_quotient(  # Score of approximation based on actual
-                    A=goal_mat,
-                    x=v,
-                )
-            )
-            if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol) or (
-                scores[i - 1] > scores[i]
-            ):
-                i += 1
-                break
-            i += 1
-
-        scores = scores[0:i]
-
-        return scores
+        lambdas, _ = self.run_test(
+            v0=v0,
+            max_iter=max_iter,
+            tol=tol,
+            goal_mat=goal_mat,
+        )
+        return lambdas
