@@ -5,7 +5,6 @@ import scipy
 from scipy.sparse import diags
 
 from src.acc_vs_work.util.ReductionType import ReductionType
-
 from src.util.constants import THIRTY_TWO_BIT_PRECISION
 
 
@@ -284,7 +283,7 @@ if __name__ == "__main__":
         print(f"\n{mat}")
         A = ss_getter.get_preprocessed(mat)
         if A is None:
-            print(f"No matrix gotten, skipping...")
+            print("No matrix gotten, skipping...")
             continue
         rng = np.random.default_rng(seed=5334)
         rand_vect = rng.normal(loc=0.0, scale=0.0625, size=A.shape[0])

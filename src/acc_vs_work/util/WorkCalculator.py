@@ -2,7 +2,6 @@
 
 import numpy as np
 import scipy
-
 from src.util.ReductionType import ReductionType
 
 
@@ -115,11 +114,7 @@ class WorkCalculator:
         Returns:
             int: amount of scalar mults
         """
-        mults_per_iter = (
-            self.nnz
-            + self.shape[0]
-            + self.nnz * self.shape[0]
-        )
+        mults_per_iter = self.nnz + self.shape[0] + self.nnz * self.shape[0]
         if self.is_distributed:
             return mults_per_iter
         return self.n_trials * mults_per_iter
@@ -174,7 +169,11 @@ class WorkCalculator:
                         "set WorkCalculator.n_trails before call to calculate"
                     )
                 init_work = self.__work_prep_naive()
-            case ReductionType.NO_REDUCTION | ReductionType.AVG_BEFORE | ReductionType.AVG_AFTER:
+            case (
+                ReductionType.NO_REDUCTION
+                | ReductionType.AVG_BEFORE
+                | ReductionType.AVG_AFTER
+            ):
                 init_work = 0
                 # TODO: I think reducing does have some overhead not currently tracked
             case _:

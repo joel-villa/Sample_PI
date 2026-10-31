@@ -34,7 +34,7 @@ def check_vals(
         check_max (bool): If True -> throw error if any values in xs are more
         than max, do no such error handling otherwise
     """
-    #assert np.all(xs >= 0), "Scores must be nonnegative"
+    # assert np.all(xs >= 0), "Scores must be nonnegative"
     if check_max and (np.max(xs) > (max + THIRTY_TWO_BIT_PRECISION)):
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
@@ -436,6 +436,8 @@ def main():
     for id in result_ids:
         results = AccWorkResult(file_id=id)
         results.disp_results()
+
+
 def main_2():
     result = AccWorkResult(file_id=25)
     result.disp_results()
@@ -443,7 +445,8 @@ def main_2():
     result = AccWorkResult(file_id=1)
     result.disp_results()
 
+
 if __name__ == "__main__":
     """For testing purporses"""
-#    main()
+    #    main()
     main_2()

@@ -67,7 +67,6 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
-
     def __generic_test(
         self,
         matrix: scipy.sparse.sparray,
@@ -80,10 +79,7 @@ class AccWorkTest(Test):
             matrix=matrix,
         )
         scores = power.test(
-            v0=v0,
-            max_iter=self.max_iter,
-            tol=self.tol,
-            goal_mat=goal_mat
+            v0=v0, max_iter=self.max_iter, tol=self.tol, goal_mat=goal_mat
         )
 
         # Add initial work
@@ -188,23 +184,23 @@ class AccWorkTest(Test):
              scores (np.ndarray): The score of the eigenvector after every
              iteration of Power
              lbl (str): String representation of this test
-	    """
+        """
 
         scores, work = self.__generic_test(
             matrix=matrix,
             v0=v0,
             is_distributed=is_distributed,
-            reduct_type=ReductionType.NO_REDUCTION
+            reduct_type=ReductionType.NO_REDUCTION,
         )
 
         return work, scores, "baseline"
 
     def __fst_mom_pre_avg(
         self,
-        matrix:scipy.sparse.sparray,
-        v0:np.ndarray,
+        matrix: scipy.sparse.sparray,
+        v0: np.ndarray,
         num_trials: int,
-        is_distributed:bool,
+        is_distributed: bool,
     ) -> tuple[np.ndarray, np.ndarray, int, str]:
 
         rng = np.random.default_rng(seed=self.seed)
@@ -233,11 +229,11 @@ class AccWorkTest(Test):
 
     def __fst_mom_post(
         self,
-        matrix:scipy.sparse.sparray,
-        v0:np.ndarray,
+        matrix: scipy.sparse.sparray,
+        v0: np.ndarray,
         num_trials: int,
-        is_distributed:bool,
-        avg_type: int
+        is_distributed: bool,
+        avg_type: int,
     ) -> tuple[np.ndarray, np.ndarray, float, str]:
         """Run the parallelizable approach, return results
 
@@ -272,8 +268,8 @@ class AccWorkTest(Test):
                 reduct_type=reduct_type,
                 n_trials=num_trials,
             )
-            nnzs[i,:] = approx_mat.nnz
-            row_nnzs[i,:] = np.diff(approx_mat.indptr)
+            nnzs[i, :] = approx_mat.nnz
+            row_nnzs[i, :] = np.diff(approx_mat.indptr)
 
             power = Power(
                 matrix=approx_mat,
@@ -285,7 +281,7 @@ class AccWorkTest(Test):
                 goal_mat=matrix,
             )
             n_iters[i] = vects_temp.shape[0]
-            vects[i, :n_iters[i]] = vects_temp
+            vects[i, : n_iters[i]] = vects_temp
 
         sig_iter = -1
 
@@ -300,7 +296,6 @@ class AccWorkTest(Test):
                 raise NotImplementedError()
         sig_iter = round(sig_iter)
         vects = vects[:, :sig_iter, :]
-
 
         # Axis = 1 => one average per row
         axis = 1
@@ -322,9 +317,9 @@ class AccWorkTest(Test):
         scores = np.zeros((sig_iter,))
         for i, vect in enumerate(avg_vects):
             scores[i] = power.rayleigh_quotient(
-                            A=matrix,
-                            x=vect,
-                        )
+                A=matrix,
+                x=vect,
+            )
 
         if num_trials == 1:
             lbl = f"{num_trials} trial"
@@ -383,11 +378,13 @@ class AccWorkTest(Test):
             for i, n_trials in tqdm(enumerate(self.num_trials)):
                 lbl = ""
                 for j in range(self.num_avg):
-                    xs_temp, ys_temp, nnzs[i, j], lbl = self.__snd_mom_binomial_test(  # TODO
-                        A=matrix,
-                        v0=normalized_vect,
-                        num_trials=n_trials,
-                        is_distributed=True,  # Always distributed => less work
+                    xs_temp, ys_temp, nnzs[i, j], lbl = (
+                        self.__snd_mom_binomial_test(  # TODO
+                            A=matrix,
+                            v0=normalized_vect,
+                            num_trials=n_trials,
+                            is_distributed=True,  # Always distributed => less work
+                        )
                     )
                     # Iteration tracking
                     curr_iter = ys_temp.shape[0]

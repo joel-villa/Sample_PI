@@ -42,7 +42,6 @@ class Power:
 
         return (x.T @ (A @ x)).item()
 
-
     def __run_power(
         self,
         v0: np.ndarray,
@@ -71,7 +70,7 @@ class Power:
             goal_mat = self.matrix
 
         scores = np.zeros(shape=(max_iter,))
-        vects = np.zeros(shape=(max_iter,v0.shape[0]))
+        vects = np.zeros(shape=(max_iter, v0.shape[0]))
 
         scores[0] = self.rayleigh_quotient(x=v0, A=goal_mat)
         vects[0] = v0
