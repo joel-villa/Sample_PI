@@ -3,7 +3,7 @@
 import numpy as np
 import scipy
 
-from src.acc_vs_work.util.ReductionType import ReductionType
+from src.util.ReductionType import ReductionType
 
 
 class WorkCalculator:
@@ -174,6 +174,11 @@ class WorkCalculator:
                         "set WorkCalculator.n_trails before call to calculate"
                     )
                 init_work = self.__work_prep_naive()
+            case ReductionType.NO_REDUCTION | ReductionType.AVG_BEFORE | ReductionType.AVG_AFTER:
+                init_work = 0
+                # TODO: I think reducing does have some overhead not currently tracked
+            case _:
+                raise NotImplementedError()
 
         work = self.__work_power(num_iter=num_iter)
 
