@@ -67,7 +67,35 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
-    def __binomial_test(
+
+    def __generic_test(
+        self,
+        matrix: scipy.sparse.sparray,
+        v0: np.ndarray,
+        is_distributed: bool,
+        reduct_type: ReductionType,
+        goal_mat: scipy.sparse.sparray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        power = Power(
+            matrix=matrix,
+        )
+        scores = power.test(
+            v0=v0,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            goal_mat=goal_mat
+        )
+
+        # Add initial work
+        calculator = WorkCalculator(
+            matrix=matrix,
+            reduct_type=reduct_type,
+            is_distributed=is_distributed,
+        )
+        work = calculator.calculate(num_iter=scores.shape[0])
+        return work, scores
+
+    def __snd_mom_binomial_test(
         self,
         A: scipy.sparse.sparray,
         v0: np.ndarray,
@@ -79,10 +107,7 @@ class AccWorkTest(Test):
         Args:
             A (scipy.sparse.sparray): Matrix in question
             v0 (np.ndarray): Initial guess for top eigenvector
-            max_iter (int): Max number of iterations for power
-            tol (float): Tolerance of power iteration
             num_trials (int): Number of things to average
-            seed (int): For repeatable randomization
             is_distributed (bool): Changes ammount of work that goes into computing
             an approximation for A^TA
 
@@ -101,22 +126,13 @@ class AccWorkTest(Test):
             n_trials=num_trials,
         )
 
-        power = Power(
+        work, scores = self.__generic_test(
             matrix=tilde_A_sq,
-        )
-        scores = power.test(
             v0=v0,
-            max_iter=self.max_iter,
-            tol=self.tol,
+            is_distributed=is_distributed,
+            reduct_type=reduct_type,
             goal_mat=A.transpose() @ A,
         )
-
-        calculator = WorkCalculator(
-            matrix=tilde_A_sq,
-            reduct_type=reduct_type,
-            is_distributed=is_distributed,
-        )
-        work = calculator.calculate(scores.shape[0])
 
         if num_trials == 1:
             lbl = f"{num_trials} trial"
@@ -125,7 +141,7 @@ class AccWorkTest(Test):
 
         return work, scores, tilde_A_sq.nnz, lbl
 
-    def __baseline_pays(
+    def __snd_mom_baseline(
         self,
         A: scipy.sparse.sparray,
         v0: np.ndarray,
@@ -137,37 +153,187 @@ class AccWorkTest(Test):
         Args:
             A: the original matrix
             v0: initial guess for top eigenvector
-            max_iter: maximum number of iterations to do power iteration
-            tol (float): how much precision before terminating power
             is_distributed (bool): Changes ammount of work that goes into computing
             A^TA
 
         Returns: #TODO fix this comment
-            tuple [np.ndarray, np.ndarray, str]:
-                np.ndarray: the x-values (the ammount of work done),
-                np.ndarray: the y-values (the score of the vector),
-                str: the string representation of this test
+            work (np.ndarray): the amount of work associated with these tests
+            scores (np.ndarray): the score of the eigenvector after every
+            iteration of power
+            lbl (str): String representation of this test
         """
-        matrix = A.transpose() @ A
-        power = Power(
-            matrix=matrix,
-        )
-        scores = power.test(
+        scores, work = self.__generic_test(
+            matrix=A.transpose() @ A,
             v0=v0,
-            max_iter=self.max_iter,
-            tol=self.tol,
+            is_distributed=is_distributed,
+            reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
+        )
+        return scores, work, "baseline"
+
+    def __fst_mom_baseline(
+        self,
+        matrix: scipy.sparse.sparray,
+        v0: np.ndarray,
+        is_distributed: bool,
+    ) -> tuple[np.ndarray, np.ndarray, str]:
+        """Run the baseline for the first moment tests
+
+        Args:
+            matrix (scipy.sparse.sparray): The matrix in question
+            v0 (np.ndarray): Initial guess for the top eigenvector
+            is_distributed (bool): Has reprecussions on work approximations
+
+        Returns:
+             work (np.ndarray): The amount of work associated with these tests
+             scores (np.ndarray): The score of the eigenvector after every
+             iteration of Power
+             lbl (str): String representation of this test
+	    """
+
+        scores, work = self.__generic_test(
+            matrix=matrix,
+            v0=v0,
+            is_distributed=is_distributed,
+            reduct_type=ReductionType.NO_REDUCTION
         )
 
-        # Add initial work
-        calculator = WorkCalculator(
-            matrix=matrix,
-            reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
-            is_distributed=is_distributed,
-        )
-        work = calculator.calculate(num_iter=scores.shape[0])
         return work, scores, "baseline"
 
-    def run_test(
+    def __fst_mom_pre_avg(
+        self,
+        matrix:scipy.sparse.sparray,
+        v0:np.ndarray,
+        num_trials: int,
+        is_distributed:bool,
+    ) -> tuple[np.ndarray, np.ndarray, int, str]:
+
+        rng = np.random.default_rng(seed=self.seed)
+        reduct_type = ReductionType.AVG_BEFORE
+
+        approximator = Approximator(matrix, rng)
+        approx_mat = approximator.generate(
+            reduct_type=reduct_type,
+            n_trials=num_trials,
+        )
+
+        work, scores = self.__generic_test(
+            matrix=approx_mat,
+            v0=v0,
+            is_distributed=is_distributed,
+            reduct_type=reduct_type,
+            goal_mat=matrix.transpose() @ matrix,
+        )
+
+        if num_trials == 1:
+            lbl = f"{num_trials} trial"
+        else:
+            lbl = f"{num_trials} trials"
+
+        return work, scores, approx_mat.nnz, lbl
+
+    def __fst_mom_post(
+        self,
+        matrix:scipy.sparse.sparray,
+        v0:np.ndarray,
+        num_trials: int,
+        is_distributed:bool,
+        avg_type: int
+    ) -> tuple[np.ndarray, np.ndarray, float, str]:
+        """Run the parallelizable approach, return results
+
+        Args:
+            A (scipy.sparse.sparray): Matrix in question
+            v0 (np.ndarray): Initial guess for top eigenvector
+            num_trials (int): Number of things to average
+            is_distributed (bool): Changes ammount of work that goes into computing
+            an approximation for A^TA
+
+        Returns: #TODO fix this comment
+            xs (np.ndarray): work per iteration
+            ys (np.ndarray): score of approximate eigenvector per iteration
+            nnz (int): Number of nonzeroes in the approximation of the 2nd moment
+            lbl (str): label of this test
+
+        Resources:
+            - Numpy average of rows:
+                https://numpy.org/doc/2.5/reference/generated/numpy.average.html
+        """
+        rng = np.random.default_rng(seed=self.seed)
+        reduct_type = ReductionType.AVG_AFTER
+        approximator = Approximator(matrix=matrix, rng=rng)
+        nnzs = np.zeros((num_trials,))
+        row_nnzs = np.zeros((num_trials, matrix.shape[0]))
+        vects = np.full((num_trials, max_iter, v0.shape[0]), np.nan)
+        n_iters = np.zeros((num_trials,))
+        power = None
+
+        for i in range(num_trials):
+            approx_mat = approximator.generate(
+                reduct_type=reduct_type,
+                n_trials=num_trials,
+            )
+            nnzs[i,:] = approx_mat.nnz
+            row_nnzs[i,:] = np.diff(approx_mat.indptr)
+
+            power = Power(
+                matrix=approx_mat,
+            )
+            vects_temp = power.get_vects(
+                v0=v0,
+                max_iter=self.max_iter,
+                tol=self.tol,
+                goal_mat=matrix,
+            )
+            n_iters[i] = vects_temp.shape[0]
+            vects[i, :n_iters[i]] = vects_temp
+
+        sig_iter = -1
+
+        match avg_type:
+            case 1:
+                sig_iter = np.min(n_iters)
+            case 2:
+                sig_iter = np.median(n_iters)
+            case 3:
+                sig_iter = np.min(n_iters)
+            case _:
+                raise NotImplementedError()
+        sig_iter = round(sig_iter)
+        vects = vects[:, :sig_iter, :]
+
+
+        # Axis = 1 => one average per row
+        axis = 1
+        avg_vects = np.nanmean(vects, axis=axis)
+        avg_row_nnzs = np.average(row_nnzs, axis=axis)
+        avg_nnzs = np.average(nnzs)
+
+        calculator = WorkCalculator(
+            shape=matrix.shape,
+            nnz=round(avg_nnzs),
+            row_nnzs=np.round(avg_row_nnzs),
+            reduct_type=reduct_type,
+            is_distributed=is_distributed,
+        )
+        work = calculator.calculate(num_iter=sig_iter)
+
+        if power is None:
+            raise ValueError("Why work None type?")
+        scores = np.zeros((sig_iter,))
+        for i, vect in enumerate(avg_vects):
+            scores[i] = power.rayleigh_quotient(
+                            A=matrix,
+                            x=vect,
+                        )
+
+        if num_trials == 1:
+            lbl = f"{num_trials} trial"
+        else:
+            lbl = f"{num_trials} trials"
+
+        return work, scores, avg_nnzs, lbl
+
+    def run_snd_mom_test(
         self,
         disp_result: bool = False,
         log_y: bool = True,
@@ -199,7 +365,7 @@ class AccWorkTest(Test):
             rand_vect = rng.normal(loc=0.0, scale=0.0625, size=matrix.shape[0])
             normalized_vect = rand_vect / np.linalg.norm(rand_vect, ord=2)
 
-            work_baseline, acc_baseline, _ = self.__baseline_pays(  # TODO
+            work_baseline, acc_baseline, _ = self.__snd_mom_baseline(  # TODO
                 A=matrix,
                 v0=normalized_vect,
                 is_distributed=True,  # Always assuming distributed -> less work
@@ -217,7 +383,7 @@ class AccWorkTest(Test):
             for i, n_trials in tqdm(enumerate(self.num_trials)):
                 lbl = ""
                 for j in range(self.num_avg):
-                    xs_temp, ys_temp, nnzs[i, j], lbl = self.__binomial_test(  # TODO
+                    xs_temp, ys_temp, nnzs[i, j], lbl = self.__snd_mom_binomial_test(  # TODO
                         A=matrix,
                         v0=normalized_vect,
                         num_trials=n_trials,
@@ -260,7 +426,7 @@ class AccWorkTest(Test):
 
     def run(self) -> None:
         """Run the test!"""
-        self.run_test()
+        self.run_snd_mom_test()
 
 
 if __name__ == "__main__":
@@ -325,7 +491,7 @@ if __name__ == "__main__":
         max_iter=max_iter,
         seed=seed,
     )
-    test.run_test(
+    test.run_snd_mom_test(
         disp_result=True,
         log_y=True,
         run_length_type=2,
