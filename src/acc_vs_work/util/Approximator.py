@@ -6,7 +6,7 @@ from scipy.sparse import diags
 
 from src.acc_vs_work.util.ReductionType import ReductionType
 
-from ...util.constants import THIRTY_TWO_BIT_PRECISION
+from src.util.constants import THIRTY_TWO_BIT_PRECISION
 
 
 class Approximator:
