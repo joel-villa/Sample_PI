@@ -43,7 +43,7 @@ class Power:
         return (x.T @ (A @ x)).item()
 
 
-    def run_test(
+    def __run_power(
         self,
         v0: np.ndarray,
         max_iter: int,
@@ -130,7 +130,7 @@ class Power:
             iteration of power
             vects (np.ndarray): the top eigenvector approximation per iteration
         """
-        _, vects = self.run_test(
+        _, vects = self.__run_power(
             v0=v0,
             max_iter=max_iter,
             tol=tol,
@@ -161,7 +161,7 @@ class Power:
             iteration of power
             vects (np.ndarray): the top eigenvector approximation per iteration
         """
-        lambdas, _ = self.run_test(
+        lambdas, _ = self.__run_power(
             v0=v0,
             max_iter=max_iter,
             tol=tol,
