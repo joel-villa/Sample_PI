@@ -30,6 +30,7 @@ machine, at the root in the .ssgetpy directory
 
 ### Empirical
 
+- [ ] Doc comments are definitely outdated
 - [ ] First moment average (plus proof to come)
 - [x] Finish objectifying things (*man noises*)
 - [ ] Move Work calculator inside of results :D
