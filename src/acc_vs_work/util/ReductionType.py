@@ -1,13 +1,27 @@
-"""The Reduction strategies implemented"""
+"""The Reduction strategies implemented
 
-from enum import Enum
+Resources:
+    - String Enums:
+        https://docs.python.org/3/library/enum.html#enum.StrEnum
+        https://stackoverflow.com/questions/58608361/string-based-enum-in-python
+"""
+from enum import StrEnum, auto
 
 
 # class syntax
-class ReductionType(Enum):
-    SND_MOM_NO_REDUCTION = 1
-    SND_MOMENT_NAIVE = 2
-    SND_MOMENT_BINOMIAL = 3
-    NO_REDUCTION = 4
-    AVG_BEFORE = 5
-    AVG_AFTER = 6
+class ReductionType(StrEnum):
+    SND_MOM_NO_REDUCTION = auto()
+    SND_MOMENT_NAIVE = auto()
+    SND_MOMENT_BINOMIAL = auto()
+    NO_REDUCTION = auto()
+    AVG_BEFORE = auto()
+    AVG_AFTER = auto()
+
+    @classmethod
+    def _missing_(cls, value):
+        value = str(value)
+        value = value.lower()
+        for member in cls:
+            if member.value == value:
+                return member
+        return None
