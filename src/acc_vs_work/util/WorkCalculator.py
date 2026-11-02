@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy
-from src.util.ReductionType import ReductionType
+from src.acc_vs_work.util.ReductionType import ReductionType
 
 
 class WorkCalculator:
