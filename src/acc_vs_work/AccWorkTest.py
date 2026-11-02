@@ -314,10 +314,12 @@ class AccWorkTest(Test):
         if power is None:
             raise ValueError("Why work None type?")
         scores = np.zeros((sig_iter,))
-        for i, vect in enumerate(avg_vects):
+        for i in range(sig_iter):
+            avg_vects[i] = avg_vects[i] / np.linalg.norm(avg_vects[i])
+
             scores[i] = power.rayleigh_quotient(
                 A=matrix,
-                x=vect,
+                x=avg_vects[i],
             )
 
         if num_trials == 1:
@@ -524,8 +526,8 @@ if __name__ == "__main__":
         seed=seed,
     )
     test.run_test(
-        disp_result=True,
+        disp_result=False,
         log_y=True,
         run_length_type=2,
-        reduct_type=ReductionType.AVG_BEFORE,
+        reduct_type=ReductionType.AVG_AFTER,
     )
