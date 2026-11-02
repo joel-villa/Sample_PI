@@ -10,12 +10,14 @@ import json
 import matplotlib
 import numpy as np
 
+from src.acc_vs_work.util.ReductionType import ReductionType
+
 matplotlib.use("QtAgg")
 
 import matplotlib.pyplot as plt
 
-from ..Result import Result
-from ..util.constants import THIRTY_TWO_BIT_PRECISION
+from src.Result import Result
+from src.util.constants import THIRTY_TWO_BIT_PRECISION
 
 # Some helper fucntions:
 
@@ -89,14 +91,15 @@ def rel_residue(
 class AccWorkResult(Result):
     """The metadata to track"""
 
-    FILE_ID_LEN: int = 3
+    #TODO: Reduction Type => different legends
+
     TEST_STRING: str = "acc_vs_work"
 
     mat_name: str
     is_sparse: bool
     mat_shape: tuple[int, int]  # TODO: add this
-    snd_moment_norm: float
-    snd_moment_nnz: int
+    matrix_norm: float
+    matrix_nnz: int
     max_iter: int
     tol: float
     seed: int
@@ -112,14 +115,16 @@ class AccWorkResult(Result):
     work: np.ndarray
     accuracies: np.ndarray
 
+    reduct_type: ReductionType
+
     def __init__(
         self,
         file_id: int | None = None,
         mat_name: str | None = None,
         mat_shape: tuple[int, int] | None = None,
         is_sparse: bool | None = None,
-        snd_moment_norm: float | None = None,
-        snd_moment_nnz: int | None = None,
+        matrix_norm: float | None = None,
+        matrix_nnz: int | None = None,
         max_iter: int | None = None,
         tol: float | None = None,
         seed: int | None = None,
@@ -133,6 +138,7 @@ class AccWorkResult(Result):
         baseline_accuracies: np.ndarray | None = None,
         work: np.ndarray | None = None,
         accuracies: np.ndarray | None = None,
+        reduct_type: ReductionType | None = None,
     ) -> None:
         """Initialize the data tracking object
 
@@ -180,8 +186,8 @@ class AccWorkResult(Result):
                 mat_name is None
                 or mat_shape is None
                 or is_sparse is None
-                or snd_moment_norm is None
-                or snd_moment_nnz is None
+                or matrix_norm is None
+                or matrix_nnz is None
                 or max_iter is None
                 or tol is None
                 or seed is None
@@ -194,6 +200,7 @@ class AccWorkResult(Result):
                 or baseline_accuracies is None
                 or work is None
                 or accuracies is None
+                or reduct_type is None
             ):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
@@ -201,8 +208,8 @@ class AccWorkResult(Result):
             self.mat_name = mat_name
             self.mat_shape = mat_shape
             self.is_sparse = is_sparse
-            self.snd_moment_norm = snd_moment_norm
-            self.snd_moment_nnz = snd_moment_nnz
+            self.matrix_norm = matrix_norm
+            self.matrix_nnz = matrix_nnz
             self.max_iter = max_iter
             self.tol = tol
             self.seed = seed
@@ -216,8 +223,10 @@ class AccWorkResult(Result):
             self.baseline_accuracies = baseline_accuracies
             self.work = work
             self.accuracies = accuracies
+            self.reduct_type = reduct_type
 
         # Ensuring correct usage
+        assert self.reduct_type in {ReductionType.AVG_AFTER, ReductionType.AVG_AFTER, ReductionType.SND_MOMENT_BINOMIAL}
         assert self.baseline_accuracies.shape == self.baseline_work.shape, (
             f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
         )
@@ -264,8 +273,8 @@ class AccWorkResult(Result):
             self.mat_name = metadata["mat_name"]
             self.mat_shape = metadata["mat_shape"]
             self.is_sparse = metadata["is_sparse"]
-            self.snd_moment_norm = metadata["snd_moment_norm"]
-            self.snd_moment_nnz = metadata["snd_moment_nnz"]
+            self.matrix_norm = metadata["snd_moment_norm"]
+            self.matrix_nnz = metadata["snd_moment_nnz"]
             self.max_iter = metadata["max_iter"]
             self.tol = metadata["tol"]
             self.seed = metadata["seed"]
@@ -273,6 +282,7 @@ class AccWorkResult(Result):
             self.n_binom_trials = metadata["n_binom_trials"]
             self.lbls = metadata["lbls"]
             self.notes = metadata["notes"]
+            self.reduct_type = ReductionType(metadata["reduct_type"])
 
         npzfile = np.load(path_npz)
 
@@ -304,8 +314,8 @@ class AccWorkResult(Result):
             "mat_name": self.mat_name,
             "mat_shape": self.mat_shape,
             "is_sparse": self.is_sparse,
-            "snd_moment_norm": self.snd_moment_norm,
-            "snd_moment_nnz": self.snd_moment_nnz,
+            "snd_moment_norm": self.matrix_norm,
+            "snd_moment_nnz": self.matrix_nnz,
             "max_iter": self.max_iter,
             "tol": self.tol,
             "seed": self.seed,
@@ -313,6 +323,7 @@ class AccWorkResult(Result):
             "n_binom_trials": self.n_binom_trials,
             "lbls": self.lbls,
             "notes": self.notes,
+            "reduct_type":self.reduct_type.name,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
@@ -356,11 +367,11 @@ class AccWorkResult(Result):
             check_max=True,
         )
         base_ys = rel_residue(
-            max=self.snd_moment_norm,
+            max=self.matrix_norm,
             xs=base_ys,
             check_max=True,
         )
-        ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self.snd_moment_nnz}")
+        ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self.matrix_nnz}")
 
         num_trials = self.work.shape[0]
         num_avg = self.num_avg
@@ -389,7 +400,7 @@ class AccWorkResult(Result):
                 # Looping through the runs (for averaging purposes)
                 ys_temp = self.accuracies[i, j, : self.test_run_iters[i, j]]
                 ys_i[j, : self.test_run_iters[i, j]] = rel_residue(
-                    max=self.snd_moment_norm,
+                    max=self.matrix_norm,
                     xs=ys_temp,
                     check_max=True,
                 )
@@ -409,12 +420,28 @@ class AccWorkResult(Result):
 
             ax.plot(xs, ys, label=f"{lbl}, nnz = {nnz}")
 
-        ax.set_title(
-            f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-            f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg}) runs"
-        )
+        match self.reduct_type:
+            case ReductionType.SND_MOMENT_BINOMIAL:
+                ax.set_title(
+                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
+                )
+            case ReductionType.AVG_AFTER:
+                ax.set_title(
+                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs--avg after)"
+                )
+            case ReductionType.AVG_BEFORE:
+                ax.set_title(
+                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs--avg before)"
+                )
+        match self.reduct_type:
+            case ReductionType.SND_MOMENT_BINOMIAL:
+                ax.set_ylabel(r"$\frac{|A^TA| - |A^TA\tilde v_1|}{|A^TA|}$", rotation=0)
+            case ReductionType.AVG_AFTER | ReductionType.AVG_BEFORE:
+                ax.set_ylabel(r"$\frac{|A| - |A\tilde v_1|}{|A|}$", rotation=0)
         ax.set_xlabel("Approximate Proportion of Scalar Mults")
-        ax.set_ylabel(r"$\frac{|A^TA| - |A^TA\tilde v_1|}{|A^TA|}$", rotation=0)
         if log_y:
             ax.set_yscale("log")
         ax.legend()
