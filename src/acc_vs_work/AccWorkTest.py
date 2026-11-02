@@ -1,6 +1,7 @@
 from warnings import warn
 
 import numpy as np
+from numpy._core import result_type
 import scipy
 from tqdm import tqdm
 
@@ -158,13 +159,13 @@ class AccWorkTest(Test):
             iteration of power
             lbl (str): String representation of this test
         """
-        scores, work = self.__generic_test(
+        work, scores = self.__generic_test(
             matrix=A.transpose() @ A,
             v0=v0,
             is_distributed=is_distributed,
             reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
         )
-        return scores, work, "baseline"
+        return work, scores, "baseline"
 
     def __fst_mom_baseline(
         self,
@@ -186,7 +187,7 @@ class AccWorkTest(Test):
              lbl (str): String representation of this test
         """
 
-        scores, work = self.__generic_test(
+        work, scores = self.__generic_test(
             matrix=matrix,
             v0=v0,
             is_distributed=is_distributed,
@@ -260,15 +261,14 @@ class AccWorkTest(Test):
         nnzs = np.zeros((num_trials,))
         row_nnzs = np.zeros((num_trials, matrix.shape[0]))
         vects = np.full((num_trials, max_iter, v0.shape[0]), np.nan)
-        n_iters = np.zeros((num_trials,))
+        n_iters = np.zeros((num_trials,), dtype=int)
         power = None
 
         for i in range(num_trials):
             approx_mat = approximator.generate(
                 reduct_type=reduct_type,
-                n_trials=num_trials,
             )
-            nnzs[i, :] = approx_mat.nnz
+            nnzs[i] = approx_mat.nnz
             row_nnzs[i, :] = np.diff(approx_mat.indptr)
 
             power = Power(
@@ -297,8 +297,8 @@ class AccWorkTest(Test):
         sig_iter = round(sig_iter)
         vects = vects[:, :sig_iter, :]
 
-        # Axis = 1 => one average per row
-        axis = 1
+        # Axis = 0 => one average per row
+        axis = 0
         avg_vects = np.nanmean(vects, axis=axis)
         avg_row_nnzs = np.average(row_nnzs, axis=axis)
         avg_nnzs = np.average(nnzs)
@@ -363,11 +363,21 @@ class AccWorkTest(Test):
             rand_vect = rng.normal(loc=0.0, scale=0.0625, size=matrix.shape[0])
             normalized_vect = rand_vect / np.linalg.norm(rand_vect, ord=2)
 
-            work_baseline, acc_baseline, _ = self.__snd_mom_baseline(  # TODO
-                A=matrix,
-                v0=normalized_vect,
-                is_distributed=True,  # Always assuming distributed -> less work
-            )
+            match reduct_type:
+                case ReductionType.AVG_AFTER | ReductionType.AVG_BEFORE:
+                    work_baseline, acc_baseline, _ = self.__fst_mom_baseline(  # TODO
+                        matrix=matrix,
+                        v0=normalized_vect,
+                        is_distributed=True,  # Always assuming distributed -> less work
+                    )
+                case ReductionType.SND_MOMENT_BINOMIAL:
+                    work_baseline, acc_baseline, _ = self.__snd_mom_baseline(  # TODO
+                        A=matrix,
+                        v0=normalized_vect,
+                        is_distributed=True,  # Always assuming distributed -> less work
+                    )
+                case _:
+                    raise ValueError(f"Unexptected type: {reduct_type}")
 
             lbls = []
             num_Ns_tested = len(self.num_trials)
@@ -381,14 +391,38 @@ class AccWorkTest(Test):
             for i, n_trials in tqdm(enumerate(self.num_trials)):
                 lbl = ""
                 for j in range(self.num_avg):
-                    xs_temp, ys_temp, nnzs[i, j], lbl = (
-                        self.__snd_mom_binomial_test(  # TODO
-                            A=matrix,
-                            v0=normalized_vect,
-                            num_trials=n_trials,
-                            is_distributed=True,  # Always distributed => less work
-                        )
-                    )
+                    match reduct_type:
+                        case ReductionType.SND_MOMENT_BINOMIAL:
+                            xs_temp, ys_temp, nnzs[i, j], lbl = (
+                                self.__snd_mom_binomial_test(
+                                    A=matrix,
+                                    v0=normalized_vect,
+                                    num_trials=n_trials,
+                                    is_distributed=True,  # Always distributed => less work
+                                )
+                            )
+                        case ReductionType.AVG_BEFORE:
+                            xs_temp, ys_temp, nnzs[i, j], lbl = (
+                                self.__fst_mom_pre_avg(
+                                    matrix=matrix,
+                                    v0=normalized_vect,
+                                    num_trials=n_trials,
+                                    is_distributed=True,  # Always distributed => less work
+                                )
+                            )
+                        case ReductionType.AVG_AFTER:
+                            xs_temp, ys_temp, nnzs[i, j], lbl = (
+                                self.__fst_mom_post(
+                                    matrix=matrix,
+                                    v0=normalized_vect,
+                                    num_trials=n_trials,
+                                    is_distributed=True,  # Always distributed => less work
+                                    avg_type=2,
+                                )
+                            )
+                        case _:
+                            raise ValueError(f"Unexpected reduction type: {reduct_type}")
+
                     # Iteration tracking
                     curr_iter = ys_temp.shape[0]
                     accuracies[i, j, :curr_iter] = ys_temp
@@ -422,7 +456,7 @@ class AccWorkTest(Test):
             )
             file_id = result.save_results()
             if disp_result:
-                result = AccWorkResult(file_id=file_id)
+                result = AccWorkResult(reduct_type=reduct_type,file_id=file_id)
                 result.display_results(log_y=log_y, run_length_type=run_length_type)
 
     def run(self) -> None:
@@ -493,7 +527,7 @@ if __name__ == "__main__":
         seed=seed,
     )
     test.run_test(
-        disp_result=True,
+        disp_result=False,
         log_y=True,
         run_length_type=2,
         reduct_type=ReductionType.AVG_BEFORE,
