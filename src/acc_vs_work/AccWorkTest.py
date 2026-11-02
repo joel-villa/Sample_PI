@@ -25,6 +25,7 @@ class AccWorkTest(Test):
     num_avg: int
     max_iter: int
     seed: int
+    is_distributed: bool
 
     def __init__(
         self,
@@ -36,19 +37,20 @@ class AccWorkTest(Test):
         num_avg: int,
         max_iter: int,
         seed: int,
+        is_distributed: bool,
     ) -> None:
         """Create a Result object
 
         Args:
             result_type (ResultType): The type of result for this test
             mat_getter (SSGetter): For generating matrices for this test
-            num_avg (int): The number averaged in the result (to reduce noise) # TODO
             mats (list[str]): The matrices to test
-            on_easley (bool): on_easley ->  don't display, not on_easly -> display!
-            max_iter (int): max # of iterations of power
-            tol (float): Stopping tolerance of power iteration
-            seed (int): for repeated randomness
             num_trials (list[int]): Number of bernoulli trials
+            tol (float): Stopping tolerance of power iteration
+            num_avg (int): The number averaged in the result (to reduce noise) # TODO
+            max_iter (int): max # of iterations of power
+            seed (int): for repeated randomness
+            is_distributed (bool): Changes ammount of work required
         """
         assert result_type is ResultType.ACC_VS_WORK, (
             f"result_type not ACC_VS_WORK: {result_type}"
@@ -66,12 +68,12 @@ class AccWorkTest(Test):
         self.tol = tol
         self.seed = seed
         self.num_trials = num_trials
+        self.is_distributed = is_distributed
 
     def __generic_test(
         self,
         matrix: scipy.sparse.sparray,
         v0: np.ndarray,
-        is_distributed: bool,
         reduct_type: ReductionType,
         goal_mat: scipy.sparse.sparray | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
@@ -86,7 +88,7 @@ class AccWorkTest(Test):
         calculator = WorkCalculator(
             matrix=matrix,
             reduct_type=reduct_type,
-            is_distributed=is_distributed,
+            is_distributed=self.is_distributed,
         )
         work = calculator.calculate(num_iter=scores.shape[0])
         return work, scores
@@ -96,7 +98,6 @@ class AccWorkTest(Test):
         A: scipy.sparse.sparray,
         v0: np.ndarray,
         num_trials: int,
-        is_distributed: bool,
     ) -> tuple[np.ndarray, np.ndarray, int, str]:
         """Run the parallelizable approach, return results
 
@@ -125,7 +126,6 @@ class AccWorkTest(Test):
         work, scores = self.__generic_test(
             matrix=tilde_A_sq,
             v0=v0,
-            is_distributed=is_distributed,
             reduct_type=reduct_type,
             goal_mat=A.transpose() @ A,
         )
@@ -141,7 +141,6 @@ class AccWorkTest(Test):
         self,
         A: scipy.sparse.sparray,
         v0: np.ndarray,
-        is_distributed: bool,
     ) -> tuple[np.ndarray, np.ndarray, str]:
         """Run the default power iteration on this matrix, charging it for the
         initial cost of computing A^TA
@@ -149,8 +148,6 @@ class AccWorkTest(Test):
         Args:
             A: the original matrix
             v0: initial guess for top eigenvector
-            is_distributed (bool): Changes ammount of work that goes into computing
-            A^TA
 
         Returns: #TODO fix this comment
             work (np.ndarray): the amount of work associated with these tests
@@ -161,7 +158,6 @@ class AccWorkTest(Test):
         work, scores = self.__generic_test(
             matrix=A.transpose() @ A,
             v0=v0,
-            is_distributed=is_distributed,
             reduct_type=ReductionType.SND_MOM_NO_REDUCTION,
         )
         return work, scores, "baseline"
@@ -170,7 +166,6 @@ class AccWorkTest(Test):
         self,
         matrix: scipy.sparse.sparray,
         v0: np.ndarray,
-        is_distributed: bool,
     ) -> tuple[np.ndarray, np.ndarray, str]:
         """Run the baseline for the first moment tests
 
@@ -189,7 +184,6 @@ class AccWorkTest(Test):
         work, scores = self.__generic_test(
             matrix=matrix,
             v0=v0,
-            is_distributed=is_distributed,
             reduct_type=ReductionType.NO_REDUCTION,
         )
 
@@ -200,7 +194,6 @@ class AccWorkTest(Test):
         matrix: scipy.sparse.sparray,
         v0: np.ndarray,
         num_trials: int,
-        is_distributed: bool,
     ) -> tuple[np.ndarray, np.ndarray, int, str]:
 
         rng = np.random.default_rng(seed=self.seed)
@@ -215,7 +208,6 @@ class AccWorkTest(Test):
         work, scores = self.__generic_test(
             matrix=approx_mat,
             v0=v0,
-            is_distributed=is_distributed,
             reduct_type=reduct_type,
             goal_mat=matrix,
         )
@@ -232,7 +224,6 @@ class AccWorkTest(Test):
         matrix: scipy.sparse.sparray,
         v0: np.ndarray,
         num_trials: int,
-        is_distributed: bool,
         avg_type: int,
     ) -> tuple[np.ndarray, np.ndarray, float, str]:
         """Run the parallelizable approach, return results
@@ -307,7 +298,7 @@ class AccWorkTest(Test):
             nnz=round(avg_nnzs),
             row_nnzs=np.round(avg_row_nnzs),
             reduct_type=reduct_type,
-            is_distributed=is_distributed,
+            is_distributed=self.is_distributed,
         )
         work = calculator.calculate(num_iter=sig_iter)
 
@@ -369,13 +360,11 @@ class AccWorkTest(Test):
                     work_baseline, acc_baseline, _ = self.__fst_mom_baseline(  # TODO
                         matrix=matrix,
                         v0=normalized_vect,
-                        is_distributed=True,  # Always assuming distributed -> less work
                     )
                 case ReductionType.SND_MOMENT_BINOMIAL:
                     work_baseline, acc_baseline, _ = self.__snd_mom_baseline(  # TODO
                         A=matrix,
                         v0=normalized_vect,
-                        is_distributed=True,  # Always assuming distributed -> less work
                     )
                 case _:
                     raise ValueError(f"Unexptected type: {reduct_type}")
@@ -399,7 +388,6 @@ class AccWorkTest(Test):
                                     A=matrix,
                                     v0=normalized_vect,
                                     num_trials=n_trials,
-                                    is_distributed=True,  # Always distributed => less work
                                 )
                             )
                         case ReductionType.AVG_BEFORE:
@@ -407,14 +395,12 @@ class AccWorkTest(Test):
                                 matrix=matrix,
                                 v0=normalized_vect,
                                 num_trials=n_trials,
-                                is_distributed=True,  # Always distributed => less work
                             )
                         case ReductionType.AVG_AFTER:
                             xs_temp, ys_temp, nnzs[i, j], lbl = self.__fst_mom_post(
                                 matrix=matrix,
                                 v0=normalized_vect,
                                 num_trials=n_trials,
-                                is_distributed=True,  # Always distributed => less work
                                 avg_type=2,
                             )
                         case _:
@@ -436,6 +422,7 @@ class AccWorkTest(Test):
                 mat_name=mat,
                 mat_shape=matrix.shape,
                 is_sparse=True,
+                is_distributed=self.is_distributed,
                 matrix_norm=two_norm,
                 matrix_nnz=goal_mat.nnz,
                 max_iter=self.max_iter,
@@ -499,6 +486,7 @@ if __name__ == "__main__":
     max_iter = 2**17  # 131, 072
     num_avg = 32
     seed = 7
+    is_distributed=False
 
     n_trials = [
         1,
@@ -524,6 +512,7 @@ if __name__ == "__main__":
         num_avg=num_avg,
         max_iter=max_iter,
         seed=seed,
+        is_distributed=is_distributed,
     )
     test.run_test(
         disp_result=False,
