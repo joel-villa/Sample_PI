@@ -95,6 +95,8 @@ class Power:
                 )
             )
             vects[i] = v.copy()
+
+#            if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol):
             if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol) or (
                 scores[i - 1] > scores[i]
             ):
@@ -102,7 +104,8 @@ class Power:
                 break
             i += 1
 
-        scores = scores[0:i]
+        scores = scores[:i]
+        vects = vects[:i]
 
         return scores, vects
 
