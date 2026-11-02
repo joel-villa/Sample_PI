@@ -119,6 +119,7 @@ class AccWorkResult(Result):
 
     def __init__(
         self,
+        reduct_type: ReductionType,
         file_id: int | None = None,
         mat_name: str | None = None,
         mat_shape: tuple[int, int] | None = None,
@@ -138,7 +139,6 @@ class AccWorkResult(Result):
         baseline_accuracies: np.ndarray | None = None,
         work: np.ndarray | None = None,
         accuracies: np.ndarray | None = None,
-        reduct_type: ReductionType | None = None,
     ) -> None:
         """Initialize the data tracking object
 
@@ -177,7 +177,7 @@ class AccWorkResult(Result):
             - Super Class Instatiation:
                 https://stackoverflow.com/questions/2399307/how-to-invoke-the-super-constructor-in-python
         """
-        super().__init__(self.TEST_STRING)
+        super().__init__(f"{self.TEST_STRING}/{reduct_type}")
 
         if file_id:
             self.load_results(file_id)
@@ -200,7 +200,6 @@ class AccWorkResult(Result):
                 or baseline_accuracies is None
                 or work is None
                 or accuracies is None
-                or reduct_type is None
             ):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
@@ -228,9 +227,9 @@ class AccWorkResult(Result):
         # Ensuring correct usage
         assert self.reduct_type in {
             ReductionType.AVG_AFTER,
-            ReductionType.AVG_AFTER,
+            ReductionType.AVG_BEFORE,
             ReductionType.SND_MOMENT_BINOMIAL,
-        }
+        }, f"Unexpected type: {self.reduct_type.name}"
         assert self.baseline_accuracies.shape == self.baseline_work.shape, (
             f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
         )
@@ -326,8 +325,8 @@ class AccWorkResult(Result):
             "num_avg": self.num_avg,
             "n_binom_trials": self.n_binom_trials,
             "lbls": self.lbls,
+            "reduct_type": self.reduct_type,
             "notes": self.notes,
-            "reduct_type": self.reduct_type.name,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
@@ -465,19 +464,26 @@ def main():
     result_ids = range(1, 25)
 
     for id in result_ids:
-        results = AccWorkResult(file_id=id)
+        results = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=id)
         results.disp_results()
 
 
 def main_2():
-    result = AccWorkResult(file_id=25)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=25)
     result.disp_results()
 
-    result = AccWorkResult(file_id=1)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=1)
+    result.disp_results()
+
+def main_3():
+    file_id = 1
+
+    result = AccWorkResult(reduct_type=ReductionType.AVG_BEFORE,file_id=file_id)
     result.disp_results()
 
 
 if __name__ == "__main__":
     """For testing purporses"""
-    #    main()
-    main_2()
+    # main()
+    # main_2()
+    main_3()
