@@ -433,12 +433,12 @@ class AccWorkResult(Result):
             case ReductionType.AVG_AFTER:
                 ax.set_title(
                     f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs--avg after)"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
                 )
             case ReductionType.AVG_BEFORE:
                 ax.set_title(
                     f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs--avg before)"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
                 )
         match self.reduct_type:
             case ReductionType.SND_MOMENT_BINOMIAL:
@@ -462,17 +462,18 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    result_ids = range(15, 17)
-    # result_ids = range(1, 25)
+#    result_ids = range(15, 17)
+    result_ids = range(1, 25)
 
     reduct_type = ReductionType.AVG_BEFORE
 
-    for id in result_ids:
-        results = AccWorkResult(
-            reduct_type=reduct_type,
-            file_id=id
-        )
-        results.disp_results()
+    for reduct_type in [ReductionType.SND_MOMENT_BINOMIAL, ReductionType.AVG_BEFORE]:
+        for id in result_ids:
+            results = AccWorkResult(
+                reduct_type=reduct_type,
+                file_id=id
+            )
+            results.disp_results()
 
 
 def main_2():
