@@ -97,6 +97,7 @@ class AccWorkResult(Result):
 
     mat_name: str
     is_sparse: bool
+    is_distributed: bool
     mat_shape: tuple[int, int]  # TODO: add this
     matrix_norm: float
     matrix_nnz: int
@@ -124,6 +125,7 @@ class AccWorkResult(Result):
         mat_name: str | None = None,
         mat_shape: tuple[int, int] | None = None,
         is_sparse: bool | None = None,
+        is_distributed: bool | None = None,
         matrix_norm: float | None = None,
         matrix_nnz: int | None = None,
         max_iter: int | None = None,
@@ -186,6 +188,7 @@ class AccWorkResult(Result):
                 mat_name is None
                 or mat_shape is None
                 or is_sparse is None
+                or is_distributed is None
                 or matrix_norm is None
                 or matrix_nnz is None
                 or max_iter is None
@@ -207,6 +210,7 @@ class AccWorkResult(Result):
             self.mat_name = mat_name
             self.mat_shape = mat_shape
             self.is_sparse = is_sparse
+            self.is_distributed = is_distributed
             self.matrix_norm = matrix_norm
             self.matrix_nnz = matrix_nnz
             self.max_iter = max_iter
@@ -492,4 +496,4 @@ if __name__ == "__main__":
     """For testing purporses"""
     main()
     # main_2()
-    # main_3()
+    main_3()
