@@ -464,21 +464,24 @@ def main():
     result_ids = range(1, 25)
 
     for id in result_ids:
-        results = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=id)
+        results = AccWorkResult(
+            reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=id
+        )
         results.disp_results()
 
 
 def main_2():
-    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=25)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=25)
     result.disp_results()
 
-    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL,file_id=1)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=1)
     result.disp_results()
+
 
 def main_3():
     file_id = 1
 
-    result = AccWorkResult(reduct_type=ReductionType.AVG_BEFORE,file_id=file_id)
+    result = AccWorkResult(reduct_type=ReductionType.AVG_BEFORE, file_id=file_id)
     result.disp_results()
 
 

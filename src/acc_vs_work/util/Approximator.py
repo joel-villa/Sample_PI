@@ -25,7 +25,7 @@ class Approximator:
 
     def __get_next_diagonal_sampler(
         self,
-        row_norms: np.ndarray, #TODO: don't take in row_norms, use the getter
+        row_norms: np.ndarray,  # TODO: don't take in row_norms, use the getter
     ) -> np.ndarray:
         """Get the vector that represents a diagonal matrix which randomly
         samples those columns of A
@@ -129,10 +129,7 @@ class Approximator:
 
         return zeros, row_norms
 
-    def __get_A_tilde(
-        self,
-        num_trials:int
-    ) -> scipy.sparse.sparray:
+    def __get_A_tilde(self, num_trials: int) -> scipy.sparse.sparray:
         """Generate the next reduced version of A
 
         Args:
@@ -142,10 +139,6 @@ class Approximator:
             scipy.sparse.sparray: An average of row-reduced versions of A
         """
         approximation, row_norms = self.__init_generation()
-        diag_mat = self.__get_diag_mat(
-            row_norms=row_norms,
-        )
-
 
         for i in range(num_trials):
             diag_i = self.__get_diag_mat(
@@ -220,7 +213,7 @@ class Approximator:
     def generate(
         self,
         reduct_type: ReductionType,
-        n_trials: int = 1, # TODO: make this int | None, either here  or in constructor?
+        n_trials: int = 1,  # TODO: make this int | None, either here  or in constructor?
     ) -> scipy.sparse.sparray:
         """The vibes are immaculate, this method is so deep
 

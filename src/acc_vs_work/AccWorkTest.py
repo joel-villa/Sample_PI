@@ -1,7 +1,6 @@
 from warnings import warn
 
 import numpy as np
-from numpy._core import result_type
 import scipy
 from tqdm import tqdm
 
@@ -402,26 +401,24 @@ class AccWorkTest(Test):
                                 )
                             )
                         case ReductionType.AVG_BEFORE:
-                            xs_temp, ys_temp, nnzs[i, j], lbl = (
-                                self.__fst_mom_pre_avg(
-                                    matrix=matrix,
-                                    v0=normalized_vect,
-                                    num_trials=n_trials,
-                                    is_distributed=True,  # Always distributed => less work
-                                )
+                            xs_temp, ys_temp, nnzs[i, j], lbl = self.__fst_mom_pre_avg(
+                                matrix=matrix,
+                                v0=normalized_vect,
+                                num_trials=n_trials,
+                                is_distributed=True,  # Always distributed => less work
                             )
                         case ReductionType.AVG_AFTER:
-                            xs_temp, ys_temp, nnzs[i, j], lbl = (
-                                self.__fst_mom_post(
-                                    matrix=matrix,
-                                    v0=normalized_vect,
-                                    num_trials=n_trials,
-                                    is_distributed=True,  # Always distributed => less work
-                                    avg_type=2,
-                                )
+                            xs_temp, ys_temp, nnzs[i, j], lbl = self.__fst_mom_post(
+                                matrix=matrix,
+                                v0=normalized_vect,
+                                num_trials=n_trials,
+                                is_distributed=True,  # Always distributed => less work
+                                avg_type=2,
                             )
                         case _:
-                            raise ValueError(f"Unexpected reduction type: {reduct_type}")
+                            raise ValueError(
+                                f"Unexpected reduction type: {reduct_type}"
+                            )
 
                     # Iteration tracking
                     curr_iter = ys_temp.shape[0]
@@ -456,7 +453,7 @@ class AccWorkTest(Test):
             )
             file_id = result.save_results()
             if disp_result:
-                result = AccWorkResult(reduct_type=reduct_type,file_id=file_id)
+                result = AccWorkResult(reduct_type=reduct_type, file_id=file_id)
                 result.display_results(log_y=log_y, run_length_type=run_length_type)
 
     def run(self) -> None:

@@ -5,6 +5,7 @@ Resources:
         https://docs.python.org/3/library/enum.html#enum.StrEnum
         https://stackoverflow.com/questions/58608361/string-based-enum-in-python
 """
+
 from enum import StrEnum, auto
 
 
