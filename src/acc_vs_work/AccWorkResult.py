@@ -41,7 +41,7 @@ def check_vals(
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
 
-def rel_value(  # TODO delete this and rel residue and check_vals
+def rel_value(  # TODO move these into class
     max: float,
     xs: np.ndarray,
     check_max: bool,
@@ -421,6 +421,7 @@ class AccWorkResult(Result):
                 xs = xs[:most_iter]
                 ys = ys[:most_iter]
 
+            print(f"xs[:5]: {xs[:5]}, ys[:5]: {ys[:5]}")
             ax.plot(xs, ys, label=f"{lbl}, nnz = {nnz}")
 
         match self.reduct_type:
@@ -461,11 +462,15 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    result_ids = range(1, 25)
+    result_ids = range(15, 17)
+    # result_ids = range(1, 25)
+
+    reduct_type = ReductionType.AVG_BEFORE
 
     for id in result_ids:
         results = AccWorkResult(
-            reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=id
+            reduct_type=reduct_type,
+            file_id=id
         )
         results.disp_results()
 
@@ -487,6 +492,6 @@ def main_3():
 
 if __name__ == "__main__":
     """For testing purporses"""
-    # main()
+    main()
     # main_2()
-    main_3()
+    # main_3()
