@@ -41,7 +41,7 @@ class WorkCalculator:
         else:
             if shape is None or nnz is None or row_nnzs is None:
                 raise ValueError("If no matrix provided, parameters must be specified")
-            if np.sum(row_nnzs) != nnz:
+            if reduct_type is not ReductionType.AVG_AFTER and np.sum(row_nnzs) != nnz:
                 raise ValueError(f"sum(row_nnzs) = {np.sum(row_nnzs)} != {nnz} = nnz")
             self.shape = shape
             self.nnz = nnz
