@@ -217,7 +217,7 @@ class AccWorkTest(Test):
             v0=v0,
             is_distributed=is_distributed,
             reduct_type=reduct_type,
-            goal_mat=matrix.transpose() @ matrix,
+            goal_mat=matrix,
         )
 
         if num_trials == 1:
@@ -328,11 +328,12 @@ class AccWorkTest(Test):
 
         return work, scores, avg_nnzs, lbl
 
-    def run_snd_mom_test(
+    def run_test(
         self,
         disp_result: bool = False,
         log_y: bool = True,
         run_length_type: int = 2,
+        reduct_type: ReductionType = ReductionType.SND_MOMENT_BINOMIAL,
     ) -> None:
         """Run the test with some display parameters
 
@@ -351,9 +352,11 @@ class AccWorkTest(Test):
             if matrix is None:
                 warn(f"skipping matrix: {mat}")
                 continue
-            snd_moment_A = matrix.transpose() @ matrix
+            goal_mat = matrix
+            if reduct_type is ReductionType.SND_MOMENT_BINOMIAL:
+                goal_mat = matrix.transpose() @ matrix
             two_norm = scipy.sparse.linalg.norm(
-                x=snd_moment_A,
+                x=goal_mat,
                 ord=2,
             )
             rng = np.random.default_rng(seed=5334)
@@ -400,8 +403,8 @@ class AccWorkTest(Test):
                 mat_name=mat,
                 mat_shape=matrix.shape,
                 is_sparse=True,
-                snd_moment_norm=two_norm,
-                snd_moment_nnz=snd_moment_A.nnz,
+                matrix_norm=two_norm,
+                matrix_nnz=goal_mat.nnz,
                 max_iter=self.max_iter,
                 tol=self.tol,
                 seed=self.seed,
@@ -415,6 +418,7 @@ class AccWorkTest(Test):
                 baseline_accuracies=acc_baseline,
                 work=work,
                 accuracies=accuracies,
+                reduct_type=reduct_type,
             )
             file_id = result.save_results()
             if disp_result:
@@ -423,7 +427,7 @@ class AccWorkTest(Test):
 
     def run(self) -> None:
         """Run the test!"""
-        self.run_snd_mom_test()
+        self.run_test()
 
 
 if __name__ == "__main__":
@@ -488,8 +492,9 @@ if __name__ == "__main__":
         max_iter=max_iter,
         seed=seed,
     )
-    test.run_snd_mom_test(
+    test.run_test(
         disp_result=True,
         log_y=True,
         run_length_type=2,
+        reduct_type=ReductionType.AVG_BEFORE,
     )
