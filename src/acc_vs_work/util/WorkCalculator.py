@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy
+
 from src.acc_vs_work.util.ReductionType import ReductionType
 
 

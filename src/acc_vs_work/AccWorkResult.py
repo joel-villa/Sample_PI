@@ -91,7 +91,7 @@ def rel_residue(
 class AccWorkResult(Result):
     """The metadata to track"""
 
-    #TODO: Reduction Type => different legends
+    # TODO: Reduction Type => different legends
 
     TEST_STRING: str = "acc_vs_work"
 
@@ -226,7 +226,11 @@ class AccWorkResult(Result):
             self.reduct_type = reduct_type
 
         # Ensuring correct usage
-        assert self.reduct_type in {ReductionType.AVG_AFTER, ReductionType.AVG_AFTER, ReductionType.SND_MOMENT_BINOMIAL}
+        assert self.reduct_type in {
+            ReductionType.AVG_AFTER,
+            ReductionType.AVG_AFTER,
+            ReductionType.SND_MOMENT_BINOMIAL,
+        }
         assert self.baseline_accuracies.shape == self.baseline_work.shape, (
             f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
         )
@@ -323,7 +327,7 @@ class AccWorkResult(Result):
             "n_binom_trials": self.n_binom_trials,
             "lbls": self.lbls,
             "notes": self.notes,
-            "reduct_type":self.reduct_type.name,
+            "reduct_type": self.reduct_type.name,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
