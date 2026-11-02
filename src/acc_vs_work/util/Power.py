@@ -96,7 +96,7 @@ class Power:
             )
             vects[i] = v.copy()
 
-#            if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol):
+            #            if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol):
             if (abs(scores[i - 1] - scores[i]) / abs(scores[i - 1]) <= tol) or (
                 scores[i - 1] > scores[i]
             ):

@@ -357,7 +357,7 @@ class AccWorkTest(Test):
             if reduct_type is ReductionType.SND_MOMENT_BINOMIAL:
                 goal_mat = matrix.transpose() @ matrix
             two_norm = scipy.sparse.linalg.norm(
-                x=matrix.transpose() @ matrix, #TODO: this doesn't seem right
+                x=matrix.transpose() @ matrix,  # TODO: this doesn't seem right
                 ord=2,
             )
             rng = np.random.default_rng(seed=5334)
