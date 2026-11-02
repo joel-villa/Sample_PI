@@ -1,12 +1,12 @@
 {
-    "mat_name": "eris1176",
+    "mat_name": "blckhole",
     "mat_shape": [
-        1176,
-        1176
+        2132,
+        2132
     ],
     "is_sparse": true,
-    "snd_moment_norm": 64.76594014167895,
-    "snd_moment_nnz": 48086,
+    "snd_moment_norm": 3.3874702041266254,
+    "snd_moment_nnz": 41546,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

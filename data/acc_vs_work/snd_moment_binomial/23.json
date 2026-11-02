@@ -1,12 +1,12 @@
 {
-    "mat_name": "1138_bus",
+    "mat_name": "nos3",
     "mat_shape": [
-        1138,
-        1138
+        960,
+        960
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.4964965074218854,
-    "snd_moment_nnz": 11142,
+    "snd_moment_norm": 4.6517913110040015,
+    "snd_moment_nnz": 41350,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

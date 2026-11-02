@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

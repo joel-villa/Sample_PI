@@ -1,12 +1,12 @@
 {
-    "mat_name": "bcspwr06",
+    "mat_name": "Harvard500",
     "mat_shape": [
-        1454,
-        1454
+        500,
+        500
     ],
     "is_sparse": true,
-    "snd_moment_norm": 2.4291303301878044,
-    "snd_moment_nnz": 14110,
+    "snd_moment_norm": 1.6889677403228,
+    "snd_moment_nnz": 44312,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

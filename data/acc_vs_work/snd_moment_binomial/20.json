@@ -1,12 +1,12 @@
 {
-    "mat_name": "bcsstm07",
+    "mat_name": "lshp1561",
     "mat_shape": [
-        420,
-        420
+        1561,
+        1561
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.6957388821726467,
-    "snd_moment_nnz": 22970,
+    "snd_moment_norm": 6.960219458718895,
+    "snd_moment_nnz": 28427,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

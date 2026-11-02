@@ -1,12 +1,12 @@
 {
-    "mat_name": "can_229",
+    "mat_name": "msc00726",
     "mat_shape": [
-        229,
-        229
+        726,
+        726
     ],
     "is_sparse": true,
-    "snd_moment_norm": 5.817604527582651,
-    "snd_moment_nnz": 5017,
+    "snd_moment_norm": 4.953588242409446,
+    "snd_moment_nnz": 204660,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

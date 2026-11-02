@@ -1,12 +1,12 @@
 {
-    "mat_name": "nasa1824",
+    "mat_name": "bcspwr06",
     "mat_shape": [
-        1824,
-        1824
+        1454,
+        1454
     ],
     "is_sparse": true,
-    "snd_moment_norm": 2.4572454649586937,
-    "snd_moment_nnz": 142266,
+    "snd_moment_norm": 2.4291303301878044,
+    "snd_moment_nnz": 14110,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,6 +29,6 @@
         "32 trials",
         "64 trials"
     ],
-    "reduct_type": "SND_MOMENT_BINOMIAL",
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

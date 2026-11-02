@@ -1,12 +1,12 @@
 {
-    "mat_name": "bcsstk19",
+    "mat_name": "1138_bus",
     "mat_shape": [
-        817,
-        817
+        1138,
+        1138
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.6246317263561891,
-    "snd_moment_nnz": 18287,
+    "snd_moment_norm": 1.4964965074218854,
+    "snd_moment_nnz": 11142,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

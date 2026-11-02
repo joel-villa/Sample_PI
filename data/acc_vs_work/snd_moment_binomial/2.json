@@ -1,12 +1,12 @@
 {
-    "mat_name": "lshp1561",
+    "mat_name": "494_bus",
     "mat_shape": [
-        1561,
-        1561
+        494,
+        494
     ],
     "is_sparse": true,
-    "snd_moment_norm": 6.960219458718895,
-    "snd_moment_nnz": 28427,
+    "snd_moment_norm": 1.499743055279975,
+    "snd_moment_nnz": 4062,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,6 +29,6 @@
         "32 trials",
         "64 trials"
     ],
-    "reduct_type": "SND_MOMENT_BINOMIAL",
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

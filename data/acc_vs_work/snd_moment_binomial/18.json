@@ -1,12 +1,12 @@
 {
-    "mat_name": "tomography",
+    "mat_name": "gre_343",
     "mat_shape": [
-        500,
-        500
+        343,
+        343
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.1032499032668308,
-    "snd_moment_nnz": 208298,
+    "snd_moment_norm": 1.482426811495844,
+    "snd_moment_nnz": 4095,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,6 +29,6 @@
         "32 trials",
         "64 trials"
     ],
-    "reduct_type": "SND_MOMENT_BINOMIAL",
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

@@ -1,12 +1,12 @@
 {
-    "mat_name": "gre_343",
+    "mat_name": "bcsstk07",
     "mat_shape": [
-        343,
-        343
+        420,
+        420
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.482426811495844,
-    "snd_moment_nnz": 4095,
+    "snd_moment_norm": 1.6579976886623669,
+    "snd_moment_nnz": 23660,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,6 +29,6 @@
         "32 trials",
         "64 trials"
     ],
-    "reduct_type": "SND_MOMENT_BINOMIAL",
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

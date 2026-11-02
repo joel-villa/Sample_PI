@@ -1,12 +1,12 @@
 {
-    "mat_name": "blckhole",
+    "mat_name": "bcsstk08",
     "mat_shape": [
-        2132,
-        2132
+        1074,
+        1074
     ],
     "is_sparse": true,
-    "snd_moment_norm": 3.3874702041266254,
-    "snd_moment_nnz": 41546,
+    "snd_moment_norm": 1.0089653872889288,
+    "snd_moment_nnz": 304428,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }

@@ -1,12 +1,12 @@
 {
-    "mat_name": "fs_541_1",
+    "mat_name": "bcsstk19",
     "mat_shape": [
-        541,
-        541
+        817,
+        817
     ],
     "is_sparse": true,
-    "snd_moment_norm": 4.566430551273456,
-    "snd_moment_nnz": 14005,
+    "snd_moment_norm": 1.6246317263561891,
+    "snd_moment_nnz": 18287,
     "max_iter": 131072,
     "tol": 0,
     "seed": 7,
@@ -29,5 +29,6 @@
         "32 trials",
         "64 trials"
     ],
+    "reduct_type": "snd_moment_binomial",
     "notes": null
 }
