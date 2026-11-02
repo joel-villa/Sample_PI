@@ -25,7 +25,7 @@ class Approximator:
 
     def __get_next_diagonal_sampler(
         self,
-        row_norms: np.ndarray,
+        row_norms: np.ndarray, #TODO: don't take in row_norms, use the getter
     ) -> np.ndarray:
         """Get the vector that represents a diagonal matrix which randomly
         samples those columns of A
@@ -111,26 +111,7 @@ class Approximator:
         row_mags = self.__round_row_norms(row_norms=row_mags)
         return row_mags
 
-    def __get_next_A_tilde(
-        self,
-    ) -> scipy.sparse.sparray:
-        """Generate the next reduced version of A
-
-        Args:
-            A (scipy.sparse.sparray): The original matrix
-            rng (np.random.Generator): the random number generator
-
-        Returns:
-            scipy.sparse.sparray: The row-reduced version of A
-        """
-        row_norms = self.__get_row_norms()
-        diag_mat = self.__get_diag_mat(
-            row_norms=row_norms,
-        )
-
-        return diag_mat @ self.matrix
-
-    def __init_A_tilde_sq(
+    def __init_generation(
         self,
     ) -> tuple[scipy.sparse.csr_array, np.ndarray]:
         """Get the intial info necessary for generating ~A^TA
@@ -148,6 +129,32 @@ class Approximator:
 
         return zeros, row_norms
 
+    def __get_A_tilde(
+        self,
+        num_trials:int
+    ) -> scipy.sparse.sparray:
+        """Generate the next reduced version of A
+
+        Args:
+            num_trials (int): The number of approximations of A to generate
+
+        Returns:
+            scipy.sparse.sparray: An average of row-reduced versions of A
+        """
+        approximation, row_norms = self.__init_generation()
+        diag_mat = self.__get_diag_mat(
+            row_norms=row_norms,
+        )
+
+
+        for i in range(num_trials):
+            diag_i = self.__get_diag_mat(
+                row_norms=row_norms,
+            )
+            approximation += (1 / num_trials) * diag_i @ self.matrix
+
+        return approximation
+
     def __naive_A_tilde_sq(
         self,
         num_trials: int,
@@ -164,7 +171,7 @@ class Approximator:
         Returns:
             scipy.sparse.sparray: The approximation of A^TA
         """
-        approximation, row_norms = self.__init_A_tilde_sq()
+        approximation, row_norms = self.__init_generation()
 
         for i in range(num_trials):
             diag_i = self.__get_diag_mat(
@@ -194,7 +201,7 @@ class Approximator:
         Returns:
             scipy.sparse.sparray: The approximation of A^TA
         """
-        approximation, row_norms = self.__init_A_tilde_sq()
+        approximation, row_norms = self.__init_generation()
 
         for i in range(self.matrix.shape[0]):
             """Notice that everything that happens in this for loop is independent,
@@ -213,7 +220,7 @@ class Approximator:
     def generate(
         self,
         reduct_type: ReductionType,
-        n_trials: int,
+        n_trials: int = 1, # TODO: make this int | None, either here  or in constructor?
     ) -> scipy.sparse.sparray:
         """The vibes are immaculate, this method is so deep
 
@@ -230,6 +237,10 @@ class Approximator:
                 return self.__naive_A_tilde_sq(num_trials=n_trials)
             case ReductionType.SND_MOMENT_BINOMIAL:
                 return self.__binomial_A_tilde_sq(num_trials=n_trials)
+            case ReductionType.AVG_BEFORE:
+                return self.__get_A_tilde(num_trials=n_trials)
+            case ReductionType.AVG_AFTER:
+                return self.__get_A_tilde(num_trials=1)
             case _:
                 raise ValueError(f"Unexpected reduction type: {reduct_type.name}")
 
