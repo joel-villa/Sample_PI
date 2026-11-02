@@ -355,7 +355,7 @@ class AccWorkTest(Test):
             if reduct_type is ReductionType.SND_MOMENT_BINOMIAL:
                 goal_mat = matrix.transpose() @ matrix
             two_norm = scipy.sparse.linalg.norm(
-                x=goal_mat,
+                x=matrix.transpose() @ matrix,
                 ord=2,
             )
             rng = np.random.default_rng(seed=5334)
@@ -524,7 +524,7 @@ if __name__ == "__main__":
         seed=seed,
     )
     test.run_test(
-        disp_result=False,
+        disp_result=True,
         log_y=True,
         run_length_type=2,
         reduct_type=ReductionType.AVG_BEFORE,
