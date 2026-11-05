@@ -515,7 +515,7 @@ if __name__ == "__main__":
         is_distributed=is_distributed,
     )
     test.run_test(
-        disp_result=True,
+        disp_result=False,
         log_y=True,
         run_length_type=2,
         reduct_type=ReductionType.AVG_BEFORE,
