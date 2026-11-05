@@ -466,12 +466,15 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    #    result_ids = range(15, 17)
-    result_ids = range(1, 25)
+    result_ids = range(25, 31)
+    #result_ids = range(1, 25)
 
-    reduct_type = ReductionType.AVG_BEFORE
+    reduct_types = [
+#        ReductionType.SND_MOMENT_BINOMIAL,
+        ReductionType.AVG_BEFORE,
+    ]
 
-    for reduct_type in [ReductionType.SND_MOMENT_BINOMIAL, ReductionType.AVG_BEFORE]:
+    for reduct_type in reduct_types:
         for id in result_ids:
             results = AccWorkResult(reduct_type=reduct_type, file_id=id)
             results.disp_results()
@@ -496,4 +499,4 @@ if __name__ == "__main__":
     """For testing purporses"""
     main()
     # main_2()
-    main_3()
+    #main_3()

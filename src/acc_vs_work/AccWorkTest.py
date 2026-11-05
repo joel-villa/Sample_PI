@@ -391,7 +391,7 @@ class AccWorkTest(Test):
                                 )
                             )
                         case ReductionType.AVG_BEFORE:
-                            xs_temp, ys_temp, nnzs[i, j], lbl = self.__fst_mom_pre_avg(
+                            xs_temp, ys_temp, nnzs[i, j], lbl = self.__fst_mom_pre_avg( #TODO save label on outside
                                 matrix=matrix,
                                 v0=normalized_vect,
                                 num_trials=n_trials,
@@ -418,7 +418,7 @@ class AccWorkTest(Test):
 
                 lbls.append(lbl)
 
-            result = AccWorkResult(
+            result = AccWorkResult( #TODO: save stuff to make a Work Calculator inside of results
                 mat_name=mat,
                 mat_shape=matrix.shape,
                 is_sparse=True,
@@ -486,7 +486,7 @@ if __name__ == "__main__":
     max_iter = 2**17  # 131, 072
     num_avg = 32
     seed = 7
-    is_distributed=False
+    is_distributed = False
 
     n_trials = [
         1,
@@ -515,8 +515,8 @@ if __name__ == "__main__":
         is_distributed=is_distributed,
     )
     test.run_test(
-        disp_result=False,
+        disp_result=True,
         log_y=True,
         run_length_type=2,
-        reduct_type=ReductionType.AVG_AFTER,
+        reduct_type=ReductionType.AVG_BEFORE,
     )

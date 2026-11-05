@@ -5,7 +5,7 @@
         494
     ],
     "is_sparse": true,
-    "snd_moment_norm": 1.2246399696563783,
+    "snd_moment_norm": 1.4997430552799753,
     "snd_moment_nnz": 1666,
     "max_iter": 131072,
     "tol": 0,
