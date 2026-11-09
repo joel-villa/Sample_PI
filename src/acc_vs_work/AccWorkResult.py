@@ -36,7 +36,7 @@ def check_vals(
         check_max (bool): If True -> throw error if any values in xs are more
         than max, do no such error handling otherwise
     """
-    # assert np.all(xs >= 0), "Scores must be nonnegative"
+    assert np.all(xs >= 0), "Scores must be nonnegative"
     if check_max and (np.max(xs) > (max + THIRTY_TWO_BIT_PRECISION)):
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
@@ -358,6 +358,7 @@ class AccWorkResult(Result):
             log_y (bool): take logarithm of y-axis when plotting?
         """
         fig, ax = plt.subplots()
+        print("Backend:", matplotlib.get_backend())
 
         base_xs = self.baseline_work
         base_ys = self.baseline_accuracies
@@ -425,7 +426,6 @@ class AccWorkResult(Result):
                 xs = xs[:most_iter]
                 ys = ys[:most_iter]
 
-            print(f"xs[:5]: {xs[:5]}, ys[:5]: {ys[:5]}")
             ax.plot(xs, ys, label=f"{lbl}, nnz = {nnz}")
 
         match self.reduct_type:
@@ -452,6 +452,15 @@ class AccWorkResult(Result):
         ax.set_xlabel("Approximate Proportion of Scalar Mults")
         if log_y:
             ax.set_yscale("log")
+            ax.set_ylim(1e-12, 1)
+            ax.yaxis.set_major_locator(
+                plt.LogLocator(base=10)
+            )
+            ax.yaxis.set_major_formatter(
+                plt.LogFormatterMathtext(base=10)
+            )
+
+        print("Y-axis scale:", ax.get_yscale())
         ax.legend()
         fig.canvas.draw()
         plt.show()
@@ -466,8 +475,8 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    result_ids = range(25, 31)
-    #result_ids = range(1, 25)
+    #result_ids = range(25, 31)
+    result_ids = range(1, 25)
 
     reduct_types = [
 #        ReductionType.SND_MOMENT_BINOMIAL,
@@ -477,7 +486,8 @@ def main():
     for reduct_type in reduct_types:
         for id in result_ids:
             results = AccWorkResult(reduct_type=reduct_type, file_id=id)
-            results.disp_results()
+            print(f"reduct_type: {reduct_type}, id: {id}")
+            results.display_results(run_length_type=2,log_y=True)
 
 
 def main_2():
