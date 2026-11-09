@@ -26,6 +26,15 @@ machine, at the root in the .ssgetpy directory
 
 ## TODOs
 
+- [ ] Finish typing up proofs
+- [ ] Work include row norms (dot product => nnz scalar mults)
+- [ ] log scaling >:(
+- [ ] Run tests again (changed two-norm calculation)
+- [ ] Dense matrices (FIRST STEP)
+  - Row powerlaw? PSD?
+  - A vs. A^TA
+
+
 - [ ] FIGURE OUT WHAT MAKES SOME PERFORMANT AND OTHERS NOT
 
 ### Empirical
