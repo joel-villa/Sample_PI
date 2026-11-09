@@ -351,6 +351,9 @@ class AccWorkTest(Test):
                 x=matrix.transpose() @ matrix,  # TODO: this doesn't seem right
                 ord=2,
             )
+            if reduct_type is not ReductionType.SND_MOMENT_BINOMIAL:
+                # square root the guy
+                two_norm = np.sqrt(two_norm) #TODO rerun the guy
             rng = np.random.default_rng(seed=5334)
             rand_vect = rng.normal(loc=0.0, scale=0.0625, size=matrix.shape[0])
             normalized_vect = rand_vect / np.linalg.norm(rand_vect, ord=2)
