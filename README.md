@@ -26,39 +26,19 @@ machine, at the root in the .ssgetpy directory
 
 ## TODOs
 
-- [ ] Finish typing up proofs
-- [ ] Work include row norms (dot product => nnz scalar mults)
-- [ ] log scaling >:(
-- [ ] Run tests again (changed two-norm calculation)
-- [ ] Dense matrices (FIRST STEP)
-  - Row powerlaw? PSD?
-  - A vs. A^TA
-
-
-- [ ] FIGURE OUT WHAT MAKES SOME PERFORMANT AND OTHERS NOT
-
 ### Empirical
 
-- [ ] Doc comments are definitely outdated
-- [ ] First moment average (plus proof to come)
-- [x] Finish objectifying things (*man noises*)
-- [ ] Move Work calculator inside of results :D
-- [ ] Test on dense matrices (are there power-law drop off dense matrices)
-- [ ] Do norms impact performance? Why are some not seeing gains?
-- [ ] Run on CARC:
-  - [ ] Collection test sweep averaging (Ask Saia about this: is it possible if 
-    we have variable number of iteratiosn?)
-    - [ ] Solution: do 20 randomly selected mats dense & sparse alike
-  - [ ] Run on large matrices!
-- [ ] Convergence vs. Work graph + line for bounds on $(1 \pm \epsilon)||A||$
-- [x] Make code strongly typed and redo doc comments
-- [x] Move two_norm.npz handling into proven/util/npz_wrapper.py
+- [ ] Have result able to calculate work itself
+- [ ] Work include row norms cost (dot product => nnz scalar mults)
+- [ ] Run tests (all three types)
+- [ ] Dense matrices 
+  - Row powerlaw? PSD?
+  - A vs. A^TA
 
 ### Theory
 
 - [ ] Prove first moment is not much worse than 2nd moment
 - [ ] Expected amount of reduced work per iteration (expected new nnzs)
 - [ ] Binomial expected work: (1 - ||a_j||)^N
-- [ ] Take advantage of eigen-gap? Other routes forward?
 - [ ] FAST-PI requires $O(\dots)$ scalar mults, vs. $O(\dots)$ of the standard 
   power-iteration...
