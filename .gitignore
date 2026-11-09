@@ -2,3 +2,6 @@ __pycache__
 *.sh
 *.err
 *.out
+
+# An overleaf helper script
+to_overleaf.py
