@@ -159,26 +159,27 @@ class WorkCalculator:
         """
         init_work = 0
 
-        match self.reduct_type:
-            case ReductionType.SND_MOM_NO_REDUCTION:
-                init_work = self.__work_prep_baseline()
-            case ReductionType.SND_MOMENT_BINOMIAL:
-                init_work = self.__work_prep_binomial()
-            case ReductionType.SND_MOMENT_NAIVE:
-                if self.n_trials < 0:
-                    raise ValueError(
-                        "set WorkCalculator.n_trails before call to calculate"
-                    )
-                init_work = self.__work_prep_naive()
-            case (
-                ReductionType.NO_REDUCTION
-                | ReductionType.AVG_BEFORE
-                | ReductionType.AVG_AFTER
-            ):
-                init_work = 0
-                # TODO: I think reducing does have some overhead not currently tracked
-            case _:
-                raise NotImplementedError()
+# TODO: init work
+#        match self.reduct_type:
+#            case ReductionType.SND_MOM_NO_REDUCTION:
+#                init_work = self.__work_prep_baseline()
+#            case ReductionType.SND_MOMENT_BINOMIAL:
+#                init_work = self.__work_prep_binomial()
+#            case ReductionType.SND_MOMENT_NAIVE:
+#                if self.n_trials < 0:
+#                    raise ValueError(
+#                        "set WorkCalculator.n_trails before call to calculate"
+#                    )
+#                init_work = self.__work_prep_naive()
+#            case (
+#                ReductionType.NO_REDUCTION
+#                | ReductionType.AVG_BEFORE
+#                | ReductionType.AVG_AFTER
+#            ):
+#                init_work = 0
+#                # TODO: I think reducing does have some overhead not currently tracked
+#            case _:
+#                raise NotImplementedError()
 
         work = self.__work_power(num_iter=num_iter)
 
