@@ -532,11 +532,11 @@ if __name__ == "__main__":
         32,
         64,
     ]
-    n_trials = [
-        1,
-        2,
-        4,
-    ]
+#    n_trials = [
+#        1,
+#        2,
+#        4,
+#    ]
 
     ss_getter = SSGetter(
         format=SparseFormat.CSR,
@@ -556,7 +556,7 @@ if __name__ == "__main__":
 
     for reduction_type in [ReductionType.AVG_BEFORE, ReductionType.SND_MOMENT_BINOMIAL, ReductionType.AVG_AFTER]:
         test.run_test(
-                disp_result=True,
+                disp_result=False,
                 log_y=True,
                 run_length_type=2,
                 reduct_type=reduction_type,
