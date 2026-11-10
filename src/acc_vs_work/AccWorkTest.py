@@ -554,7 +554,7 @@ if __name__ == "__main__":
         seed=seed,
     )
 
-    for reduction_type in [ReductionType.AVG_BEFORE, ReductionType.SND_MOMENT_BINOMIAL, ReductionType.AVG_AFTER]:
+    for reduction_type in [ReductionType.AVG_BEFORE, ReductionType.SND_MOMENT_BINOMIAL]:
         test.run_test(
                 disp_result=False,
                 log_y=True,
