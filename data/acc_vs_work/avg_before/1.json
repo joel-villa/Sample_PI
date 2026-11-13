@@ -1,0 +1,25 @@
+{
+    "mat_name": "1138_bus",
+    "mat_shape": [
+        1138,
+        1138
+    ],
+    "is_sparse": true,
+    "matrix_norm": 1.2233137403879208,
+    "baseline_nnz": 4054,
+    "max_iter": 131072,
+    "tol": 0,
+    "seed": 7,
+    "num_avg": 32,
+    "trial_list": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+    ],
+    "reduct_type": "avg_before",
+    "notes": "Mon 9 Nov"
+}

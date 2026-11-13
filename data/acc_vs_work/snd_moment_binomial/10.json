@@ -1,0 +1,25 @@
+{
+    "mat_name": "blckhole",
+    "mat_shape": [
+        2132,
+        2132
+    ],
+    "is_sparse": true,
+    "matrix_norm": 3.3874702041266245,
+    "baseline_nnz": 41546,
+    "max_iter": 131072,
+    "tol": 0,
+    "seed": 7,
+    "num_avg": 32,
+    "trial_list": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+    ],
+    "reduct_type": "snd_moment_binomial",
+    "notes": "Mon 9 Nov"
+}
