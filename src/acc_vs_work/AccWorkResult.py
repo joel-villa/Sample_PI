@@ -37,7 +37,7 @@ def check_vals(
         check_max (bool): If True -> throw error if any values in xs are more
         than max, do no such error handling otherwise
     """
-    assert np.all(xs >= 0), "Scores must be nonnegative"
+    assert np.all(xs >= 0 - THIRTY_TWO_BIT_PRECISION), f"Scores must be nonnegative: {np.min(xs)}"
     if check_max and (np.max(xs) > (max + THIRTY_TWO_BIT_PRECISION)):
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
@@ -376,8 +376,8 @@ class AccWorkResult(Result):
             reduct_type=base_reduct_type,
             is_distributed=is_distributed,
             shape=self.mat_shape,
-            power_nnz=self.baseline_nnz,
-            power_row_nnzs=self.baseline_row_nnzs,
+            nnz=self.baseline_nnz,
+            row_nnzs=self.baseline_row_nnzs,
         )
         base_ys = self.baseline_accuracies
         base_xs = work_calculator.calculate(num_iter=base_ys.shape[0])
@@ -390,11 +390,18 @@ class AccWorkResult(Result):
             xs=base_xs,
             check_max=True,
         )
-        base_ys = rel_residue(
-            max=self.matrix_norm,
-            xs=base_ys,
-            check_max=True,
-        )
+        try:
+            base_ys = rel_residue(
+                max=self.matrix_norm,
+                xs=base_ys,
+                check_max=True,
+            )
+        except AssertionError as e:
+            print (e)
+            plt.show()
+            plt.close(fig)
+            return
+
         ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self.baseline_nnz}")
 
         num_avg = self.num_avg
@@ -425,8 +432,8 @@ class AccWorkResult(Result):
                     reduct_type=self.reduct_type,
                     is_distributed=is_distributed,
                     shape=self.mat_shape,
-                    power_nnz=self.test_nnzs[i][j],
-                    power_row_nnzs=self.test_row_nnzs[i][j],
+                    nnz=self.test_nnzs[i][j],
+                    row_nnzs=self.test_row_nnzs[i][j],
                 )
                 xs_temp = work_calculator.calculate(num_iter=self.test_run_iters[i, j])
                 # Scale to be between zero and one
@@ -508,7 +515,6 @@ class AccWorkResult(Result):
 
 def main():
     """Nothing but a thang"""
-    #result_ids = range(25, 31)
     result_ids = range(1, 25)
 
     reduct_types = [
