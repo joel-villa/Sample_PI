@@ -9,7 +9,6 @@ from src.acc_vs_work.SSGetter import SSGetter
 from src.acc_vs_work.util.Approximator import Approximator
 from src.acc_vs_work.util.Power import Power
 from src.acc_vs_work.util.ReductionType import ReductionType
-from src.acc_vs_work.util.WorkCalculator import WorkCalculator
 from src.Test import Test
 from src.util.ResultType import ResultType
 
@@ -66,28 +65,6 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
-    def __generic_test(
-        self,
-        matrix: scipy.sparse.sparray,
-        v0: np.ndarray,
-        reduct_type: ReductionType,
-        goal_mat: scipy.sparse.sparray | None = None,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        power = Power(
-            matrix=matrix,
-        )
-        scores = power.test(
-            v0=v0, max_iter=self.max_iter, tol=self.tol, goal_mat=goal_mat
-        )
-
-        # Add initial work
-        calculator = WorkCalculator(
-            matrix=matrix,
-            reduct_type=reduct_type,
-            is_distributed=self.is_distributed,
-        )
-        work = calculator.calculate(num_iter=scores.shape[0])
-        return work, scores
 
     def __nnz_counts(
         self,
