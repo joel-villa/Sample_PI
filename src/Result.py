@@ -55,13 +55,13 @@ class Result(ABC):
 
         return curr_max + 1
 
-#    @abstractmethod
-#    def load_results(self, file_id: int) -> None:
-#        """Load the results from the provided file name
-#
-#        Args:
-#            file_name (int): The file of significance
-#        """
+    #    @abstractmethod
+    #    def load_results(self, file_id: int) -> None:
+    #        """Load the results from the provided file name
+    #
+    #        Args:
+    #            file_name (int): The file of significance
+    #        """
 
     @abstractmethod
     def save_results(self) -> int:

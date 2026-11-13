@@ -37,7 +37,9 @@ def check_vals(
         check_max (bool): If True -> throw error if any values in xs are more
         than max, do no such error handling otherwise
     """
-    assert np.all(xs >= 0 - THIRTY_TWO_BIT_PRECISION), f"Scores must be nonnegative: {np.min(xs)}"
+    assert np.all(xs >= 0 - THIRTY_TWO_BIT_PRECISION), (
+        f"Scores must be nonnegative: {np.min(xs)}"
+    )
     if check_max and (np.max(xs) > (max + THIRTY_TWO_BIT_PRECISION)):
         raise ValueError(f"np.max(xs) = {np.max(xs)} > {max}")
 
@@ -222,9 +224,9 @@ class AccWorkResult(Result):
             ReductionType.AVG_BEFORE,
             ReductionType.SND_MOMENT_BINOMIAL,
         }, f"Unexpected type: {self.reduct_type.name}"
-#        assert self.baseline_accuracies.shape == self.baseline_work.shape, (
-#            f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
-#        )
+        #        assert self.baseline_accuracies.shape == self.baseline_work.shape, (
+        #            f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
+        #        )
 
         n_trials = len(self.trial_list)
         assert n_trials == self.test_run_iters.shape[0], (
@@ -236,9 +238,9 @@ class AccWorkResult(Result):
         assert n_trials == self.test_row_nnzs.shape[0], (
             f"Incorrect dimensions {n_trials} != {self.test_row_nnzs.shape[0]}"
         )
-#        assert n_trials == self.work.shape[0], (
-#            f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
-#        )
+        #        assert n_trials == self.work.shape[0], (
+        #            f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
+        #        )
         assert n_trials == self.accuracies.shape[0], (
             f"Incorrect dimensions {n_trials} != {self.accuracies.shape[0]}"
         )
@@ -382,7 +384,7 @@ class AccWorkResult(Result):
         base_ys = self.baseline_accuracies
         base_xs = work_calculator.calculate(num_iter=base_ys.shape[0])
 
-#        work_offset = base_xs[0] #TODO: init work tracking?
+        #        work_offset = base_xs[0] #TODO: init work tracking?
         total_base_work = base_xs[-1]
 
         base_xs = rel_value(
@@ -397,7 +399,7 @@ class AccWorkResult(Result):
                 check_max=True,
             )
         except AssertionError as e:
-            print (e)
+            print(e)
             plt.show()
             plt.close(fig)
             return
@@ -409,7 +411,7 @@ class AccWorkResult(Result):
         for i, n_trials in enumerate(self.trial_list):
             # Looping through Ns
 
-#            xs = self.work[i, :most_iter]
+            #            xs = self.work[i, :most_iter]
             ys_i = np.full(  # for averaging
                 (num_avg, self.accuracies.shape[2]),
                 np.nan,
@@ -456,7 +458,9 @@ class AccWorkResult(Result):
                 case 3:
                     sig_iter = np.max(self.test_run_iters[i])
                 case _:
-                    raise ValueError(f"Unexpected value for run_length_type: {run_length_type}")
+                    raise ValueError(
+                        f"Unexpected value for run_length_type: {run_length_type}"
+                    )
             xs = xs[:sig_iter]
             ys = ys[:sig_iter]
 
@@ -491,13 +495,13 @@ class AccWorkResult(Result):
         ax.set_xlabel("Approximate Proportion of Scalar Mults")
         if log_y:
             ax.set_yscale("log")
-            #ax.set_ylim(1e-12, 1)
-            #ax.yaxis.set_major_locator(
+            # ax.set_ylim(1e-12, 1)
+            # ax.yaxis.set_major_locator(
             #    plt.LogLocator(base=10)
-            #)
-            #ax.yaxis.set_major_formatter(
+            # )
+            # ax.yaxis.set_major_formatter(
             #    plt.LogFormatterMathtext(base=10)
-            #)
+            # )
 
         print("Y-axis scale:", ax.get_yscale())
         ax.legend()
@@ -526,17 +530,14 @@ def main():
         for reduct_type in reduct_types:
             results = AccWorkResult(reduct_type=reduct_type, file_id=id)
             print(f"reduct_type: {reduct_type}, id: {id}")
-            results.display_results(
-                run_length_type=2,
-                is_distributed=False,
-                log_y=True
-            )
+            results.display_results(run_length_type=2, is_distributed=False, log_y=True)
 
 
 def main_2():
     reduct_type = ReductionType.AVG_BEFORE
     result = AccWorkResult(reduct_type=reduct_type, file_id=25)
     result.disp_results()
+
 
 def main_3():
     file_id = 1
@@ -548,5 +549,5 @@ def main_3():
 if __name__ == "__main__":
     """For testing purporses"""
     main()
-    #main_2()
-    #main_3()
+    # main_2()
+    # main_3()

@@ -65,7 +65,6 @@ class AccWorkTest(Test):
         self.seed = seed
         self.num_trials = num_trials
 
-
     def __nnz_counts(
         self,
         matrix: scipy.sparse.sparray,
@@ -78,7 +77,7 @@ class AccWorkTest(Test):
         Returns:
              nnz (int): The number of nonzeros in the matrix
              row_nnzs (np.ndarray): The number of nonzeros per row in the matrix
-    	"""
+        """
         return matrix.nnz, np.diff(matrix.indptr)
 
     def __snd_mom_binomial_test(
@@ -207,12 +206,12 @@ class AccWorkTest(Test):
             n_trials=num_trials,
         )
 
-#        work, scores = self.__generic_test(
-#            matrix=approx_mat,
-#            v0=v0,
-#            reduct_type=reduct_type,
-#            goal_mat=matrix,
-#        )
+        #        work, scores = self.__generic_test(
+        #            matrix=approx_mat,
+        #            v0=v0,
+        #            reduct_type=reduct_type,
+        #            goal_mat=matrix,
+        #        )
 
         power = Power(
             matrix=approx_mat,
@@ -342,14 +341,18 @@ class AccWorkTest(Test):
 
             match reduct_type:
                 case ReductionType.AVG_AFTER | ReductionType.AVG_BEFORE:
-                    nnz_baseline, row_nnzs_baseline, acc_baseline = self.__fst_mom_baseline(  # TODO
-                        matrix=matrix,
-                        v0=normalized_vect,
+                    nnz_baseline, row_nnzs_baseline, acc_baseline = (
+                        self.__fst_mom_baseline(  # TODO
+                            matrix=matrix,
+                            v0=normalized_vect,
+                        )
                     )
                 case ReductionType.SND_MOMENT_BINOMIAL:
-                    nnz_baseline, row_nnzs_baseline, acc_baseline = self.__snd_mom_baseline(  # TODO
-                        A=matrix,
-                        v0=normalized_vect,
+                    nnz_baseline, row_nnzs_baseline, acc_baseline = (
+                        self.__snd_mom_baseline(  # TODO
+                            A=matrix,
+                            v0=normalized_vect,
+                        )
                     )
                 case _:
                     raise ValueError(f"Unexptected type: {reduct_type}")
@@ -368,7 +371,7 @@ class AccWorkTest(Test):
                 for j in range(self.num_avg):
                     match reduct_type:
                         case ReductionType.SND_MOMENT_BINOMIAL:
-                            nnzs[i, j], test_row_nnzs[i,j,:], acc_temp = (
+                            nnzs[i, j], test_row_nnzs[i, j, :], acc_temp = (
                                 self.__snd_mom_binomial_test(
                                     A=matrix,
                                     v0=normalized_vect,
@@ -376,13 +379,19 @@ class AccWorkTest(Test):
                                 )
                             )
                         case ReductionType.AVG_BEFORE:
-                            nnzs[i, j], test_row_nnzs[i,j,:], acc_temp = self.__fst_mom_pre_avg( #TODO save label on outside
-                                matrix=matrix,
-                                v0=normalized_vect,
-                                num_trials=n_trials,
+                            nnzs[i, j], test_row_nnzs[i, j, :], acc_temp = (
+                                self.__fst_mom_pre_avg(  # TODO save label on outside
+                                    matrix=matrix,
+                                    v0=normalized_vect,
+                                    num_trials=n_trials,
+                                )
                             )
                         case ReductionType.AVG_AFTER:
-                            nnzs[i, j], test_row_nnzs[i,j,:], acc_temp,  = self.__fst_mom_post(
+                            (
+                                nnzs[i, j],
+                                test_row_nnzs[i, j, :],
+                                acc_temp,
+                            ) = self.__fst_mom_post(
                                 matrix=matrix,
                                 v0=normalized_vect,
                                 num_trials=n_trials,
@@ -398,7 +407,7 @@ class AccWorkTest(Test):
                     accuracies[i, j, :curr_iter] = acc_temp
                     test_run_iters[i, j] = curr_iter
 
-            #result = AccWorkResult( #TODO: save stuff to make a Work Calculator inside of results
+            # result = AccWorkResult( #TODO: save stuff to make a Work Calculator inside of results
             #    mat_name=mat,
             #    mat_shape=matrix.shape,
             #    is_sparse=True,
@@ -419,7 +428,7 @@ class AccWorkTest(Test):
             #    work=work,
             #    accuracies=accuracies,
             #    reduct_type=reduct_type,
-            #)
+            # )
 
             two_norm = scipy.sparse.linalg.norm(
                 x=matrix.transpose() @ matrix,  # TODO: this doesn't seem right
@@ -427,7 +436,7 @@ class AccWorkTest(Test):
             )
             if reduct_type is not ReductionType.SND_MOMENT_BINOMIAL:
                 # square root the guy
-                two_norm = np.sqrt(two_norm) #TODO rerun the guy
+                two_norm = np.sqrt(two_norm)  # TODO rerun the guy
             result = AccWorkResult(
                 reduct_type=reduct_type,
                 mat_name=mat,
@@ -443,8 +452,8 @@ class AccWorkTest(Test):
                 notes="Mon 9 Nov",
                 test_run_iters=test_run_iters,
                 test_nnzs=nnzs,
-                test_row_nnzs=test_row_nnzs, #TODO
-                baseline_row_nnzs=row_nnzs_baseline, #TODO
+                test_row_nnzs=test_row_nnzs,  # TODO
+                baseline_row_nnzs=row_nnzs_baseline,  # TODO
                 baseline_accuracies=acc_baseline,
                 accuracies=accuracies,
             )
@@ -509,11 +518,11 @@ if __name__ == "__main__":
         32,
         64,
     ]
-#    n_trials = [
-#        1,
-#        2,
-#        4,
-#    ]
+    #    n_trials = [
+    #        1,
+    #        2,
+    #        4,
+    #    ]
 
     ss_getter = SSGetter(
         format=SparseFormat.CSR,
@@ -533,8 +542,8 @@ if __name__ == "__main__":
 
     for reduction_type in [ReductionType.AVG_BEFORE, ReductionType.SND_MOMENT_BINOMIAL]:
         test.run_test(
-                disp_result=False,
-                log_y=True,
-                run_length_type=2,
-                reduct_type=reduction_type,
-            )
+            disp_result=False,
+            log_y=True,
+            run_length_type=2,
+            reduct_type=reduction_type,
+        )
