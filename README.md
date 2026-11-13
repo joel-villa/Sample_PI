@@ -28,10 +28,10 @@ machine, at the root in the .ssgetpy directory
 
 ### Empirical
 
-- [ ] Have result able to calculate work itself
+- [x] Have result able to calculate work itself
 - [ ] Work include row norms cost (dot product => nnz scalar mults)
 - [ ] Run tests (all three types)
-- [ ] Dense matrices 
+- [ ] Dense matrices: https://smart.math.purdue.edu/
   - Row powerlaw? PSD?
   - A vs. A^TA
 
