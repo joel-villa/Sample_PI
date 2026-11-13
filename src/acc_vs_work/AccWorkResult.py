@@ -376,8 +376,8 @@ class AccWorkResult(Result):
             reduct_type=base_reduct_type,
             is_distributed=is_distributed,
             shape=self.mat_shape,
-            nnz=self.baseline_nnz,
-            row_nnzs=self.baseline_row_nnzs,
+            power_nnz=self.baseline_nnz,
+            power_row_nnzs=self.baseline_row_nnzs,
         )
         base_ys = self.baseline_accuracies
         base_xs = work_calculator.calculate(num_iter=base_ys.shape[0])
@@ -425,8 +425,8 @@ class AccWorkResult(Result):
                     reduct_type=self.reduct_type,
                     is_distributed=is_distributed,
                     shape=self.mat_shape,
-                    nnz=self.test_nnzs[i][j],
-                    row_nnzs=self.test_row_nnzs[i][j],
+                    power_nnz=self.test_nnzs[i][j],
+                    power_row_nnzs=self.test_row_nnzs[i][j],
                 )
                 xs_temp = work_calculator.calculate(num_iter=self.test_run_iters[i, j])
                 # Scale to be between zero and one
@@ -464,7 +464,7 @@ class AccWorkResult(Result):
             case ReductionType.SND_MOMENT_BINOMIAL:
                 ax.set_title(
                     f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs, 2nd Moment)"
                 )
             case ReductionType.AVG_AFTER:
                 ax.set_title(
@@ -474,7 +474,7 @@ class AccWorkResult(Result):
             case ReductionType.AVG_BEFORE:
                 ax.set_title(
                     f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
+                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs, 1st Moment)"
                 )
         match self.reduct_type:
             case ReductionType.SND_MOMENT_BINOMIAL:
@@ -512,12 +512,12 @@ def main():
     result_ids = range(1, 25)
 
     reduct_types = [
-#        ReductionType.SND_MOMENT_BINOMIAL,
+        ReductionType.SND_MOMENT_BINOMIAL,
         ReductionType.AVG_BEFORE,
     ]
 
-    for reduct_type in reduct_types:
-        for id in result_ids:
+    for id in result_ids:
+        for reduct_type in reduct_types:
             results = AccWorkResult(reduct_type=reduct_type, file_id=id)
             print(f"reduct_type: {reduct_type}, id: {id}")
             results.display_results(
@@ -541,6 +541,6 @@ def main_3():
 
 if __name__ == "__main__":
     """For testing purporses"""
-    #main()
-    main_2()
+    main()
+    #main_2()
     #main_3()
