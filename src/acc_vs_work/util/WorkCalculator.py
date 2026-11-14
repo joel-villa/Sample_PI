@@ -3,6 +3,7 @@
 import numpy as np
 import scipy
 
+from src.acc_vs_work.util import util
 from src.acc_vs_work.util.ReductionType import ReductionType
 
 
@@ -20,10 +21,9 @@ class WorkCalculator:
         self,
         reduct_type: ReductionType,
         is_distributed: bool,
-        matrix: scipy.sparse.sparray | None = None,
-        shape: tuple[int, int] | None = None,
-        nnz: int | None = None,
-        row_nnzs: np.ndarray | None = None,
+        shape: tuple[int, int],
+        nnz: int,
+        row_nnzs: np.ndarray,
     ) -> None:
         """Intiliaze a matrix calculator
 
@@ -34,18 +34,11 @@ class WorkCalculator:
         self.is_distributed = is_distributed
         self.n_trials = -1
 
-        if matrix is not None:
-            self.shape = matrix.shape
-            self.nnz = matrix.nnz
-            self.row_nnzs = np.diff(matrix.indptr)
-        else:
-            if shape is None or nnz is None or row_nnzs is None:
-                raise ValueError("If no matrix provided, parameters must be specified")
-            if reduct_type is not ReductionType.AVG_AFTER and np.sum(row_nnzs) != nnz:
-                raise ValueError(f"sum(row_nnzs) = {np.sum(row_nnzs)} != {nnz} = nnz")
-            self.shape = shape
-            self.nnz = nnz
-            self.row_nnzs = row_nnzs
+        if reduct_type is not ReductionType.AVG_AFTER and np.sum(row_nnzs) != nnz:
+            raise ValueError(f"sum(row_nnzs) = {np.sum(row_nnzs)} != {nnz} = nnz")
+        self.shape = shape
+        self.nnz = nnz
+        self.row_nnzs = row_nnzs
 
     def __work_power(
         self,
@@ -238,10 +231,10 @@ if __name__ == "__main__":
             print(f"reduct_type: {reduct_type.name}")
             for is_dist in (True, False):
                 print(f"is_dist: {is_dist}")
-                calculator = WorkCalculator(
-                    matrix=matrix,
-                    reduct_type=reduct_type,
-                    is_distributed=is_dist,
-                )
-                calculator.n_trials = 10
-                print(calculator.calculate(num_iter=5))
+#                calculator = WorkCalculator(
+#                    matrix=matrix,
+#                    reduct_type=reduct_type,
+#                    is_distributed=is_dist,
+#                )
+#                calculator.n_trials = 10
+#                print(calculator.calculate(num_iter=5))
