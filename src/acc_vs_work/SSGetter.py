@@ -33,7 +33,7 @@ class SSGetter(MatGetter):
 
     TOP_MAG_PATH = Path("data/top_row_mags.json")
     format: SparseFormat
-    nzbounds: tuple[int, int]
+    nzbounds: tuple[int, int] | None
     limit: int | None
     rowbounds: tuple[int, int] | None
     colbounds: tuple[int, int] | None
@@ -47,7 +47,7 @@ class SSGetter(MatGetter):
     def __init__(
         self,
         format: SparseFormat,
-        nzbounds: tuple[int, int],
+        nzbounds: tuple[int, int] | None = None,
         limit: int | None = None,
         rowbounds: tuple[int, int] | None = None,
         colbounds: tuple[int, int] | None = None,
@@ -135,7 +135,7 @@ class SSGetter(MatGetter):
             matrix (scipy.sparse.sparray): The matrix to check
         """
 
-        if matrix.nnz < self.nzbounds[0] or matrix.nnz > self.nzbounds[1]:
+        if (self.nzbounds is not None) and (matrix.nnz < self.nzbounds[0] or matrix.nnz > self.nzbounds[1]):
             warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
         if (self.rowbounds is not None) and (
             matrix.rows < self.rowbounds[0] or matrix.rows > self.rowbounds[1]
