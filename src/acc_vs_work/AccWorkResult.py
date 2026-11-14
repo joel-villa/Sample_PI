@@ -96,26 +96,26 @@ class AccWorkResult(Result):
 
     TEST_STRING: str = "acc_vs_work"
 
-    mat_name: str
-    is_sparse: bool
-    baseline_nnz: int
-    max_iter: int
-    num_avg: int
-    seed: int
-    mat_shape: tuple[int, int]
-    matrix_norm: float
-    tol: float
-    trial_list: list[int]
-    notes: str | None
+    _mat_name: str
+    _is_sparse: bool
+    _baseline_nnz: int
+    _max_iter: int
+    _num_avg: int
+    _seed: int
+    _mat_shape: tuple[int, int]
+    _matrix_norm: float
+    _tol: float
+    _trial_list: list[int]
+    _notes: str | None
 
-    test_run_iters: np.ndarray
-    test_nnzs: np.ndarray
-    test_row_nnzs: np.ndarray
-    baseline_row_nnzs: np.ndarray
-    baseline_accuracies: np.ndarray
-    accuracies: np.ndarray
+    _test_run_iters: np.ndarray
+    _test_nnzs: np.ndarray
+    _test_row_nnzs: np.ndarray
+    _baseline_row_nnzs: np.ndarray
+    _baseline_accuracies: np.ndarray
+    _accuracies: np.ndarray
 
-    reduct_type: ReductionType
+    _reduct_type: ReductionType
 
     def __init__(
         self,
@@ -199,70 +199,70 @@ class AccWorkResult(Result):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
                 )
-            self.mat_name = mat_name
-            self.mat_shape = mat_shape
-            self.is_sparse = is_sparse
-            self.matrix_norm = matrix_norm
-            self.baseline_nnz = baseline_nnz
-            self.max_iter = max_iter
-            self.tol = tol
-            self.seed = seed
-            self.num_avg = num_avg
-            self.trial_list = trial_list
-            self.notes = notes
-            self.test_run_iters = test_run_iters
-            self.test_nnzs = test_nnzs
-            self.test_row_nnzs = test_row_nnzs
-            self.baseline_row_nnzs = baseline_row_nnzs
-            self.baseline_accuracies = baseline_accuracies
-            self.accuracies = accuracies
-            self.reduct_type = reduct_type
+            self._mat_name = mat_name
+            self._mat_shape = mat_shape
+            self._is_sparse = is_sparse
+            self._matrix_norm = matrix_norm
+            self._baseline_nnz = baseline_nnz
+            self._max_iter = max_iter
+            self._tol = tol
+            self._seed = seed
+            self._num_avg = num_avg
+            self._trial_list = trial_list
+            self._notes = notes
+            self._test_run_iters = test_run_iters
+            self._test_nnzs = test_nnzs
+            self._test_row_nnzs = test_row_nnzs
+            self._baseline_row_nnzs = baseline_row_nnzs
+            self._baseline_accuracies = baseline_accuracies
+            self._accuracies = accuracies
+            self._reduct_type = reduct_type
 
         # Ensuring correct usage
-        assert self.reduct_type in {
+        assert self._reduct_type in {
             ReductionType.AVG_AFTER,
             ReductionType.AVG_BEFORE,
             ReductionType.SND_MOMENT_BINOMIAL,
-        }, f"Unexpected type: {self.reduct_type.name}"
+        }, f"Unexpected type: {self._reduct_type.name}"
         #        assert self.baseline_accuracies.shape == self.baseline_work.shape, (
         #            f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
         #        )
 
-        n_trials = len(self.trial_list)
-        assert n_trials == self.test_run_iters.shape[0], (
-            f"Incorrect dimensions {n_trials} != {self.test_run_iters.shape[0]}"
+        n_trials = len(self._trial_list)
+        assert n_trials == self._test_run_iters.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self._test_run_iters.shape[0]}"
         )
-        assert n_trials == self.test_nnzs.shape[0], (
-            f"Incorrect dimensions {n_trials} != {self.test_nnzs.shape[0]}"
+        assert n_trials == self._test_nnzs.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self._test_nnzs.shape[0]}"
         )
-        assert n_trials == self.test_row_nnzs.shape[0], (
-            f"Incorrect dimensions {n_trials} != {self.test_row_nnzs.shape[0]}"
+        assert n_trials == self._test_row_nnzs.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self._test_row_nnzs.shape[0]}"
         )
         #        assert n_trials == self.work.shape[0], (
         #            f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
         #        )
-        assert n_trials == self.accuracies.shape[0], (
-            f"Incorrect dimensions {n_trials} != {self.accuracies.shape[0]}"
+        assert n_trials == self._accuracies.shape[0], (
+            f"Incorrect dimensions {n_trials} != {self._accuracies.shape[0]}"
         )
 
-        assert self.num_avg == self.test_run_iters.shape[1], (
-            f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
+        assert self._num_avg == self._test_run_iters.shape[1], (
+            f"Incorrect dimensions {self._num_avg} != {self._accuracies.shape[1]}"
         )
-        assert self.num_avg == self.test_nnzs.shape[1], (
-            f"Incorrect dimensions {self.num_avg} != {self.test_nnzs.shape[1]}"
+        assert self._num_avg == self._test_nnzs.shape[1], (
+            f"Incorrect dimensions {self._num_avg} != {self._test_nnzs.shape[1]}"
         )
-        assert self.num_avg == self.test_row_nnzs.shape[1], (
-            f"Incorrect dimensions {self.num_avg} != {self.test_row_nnzs.shape[1]}"
+        assert self._num_avg == self._test_row_nnzs.shape[1], (
+            f"Incorrect dimensions {self._num_avg} != {self._test_row_nnzs.shape[1]}"
         )
-        assert self.num_avg == self.accuracies.shape[1], (
-            f"Incorrect dimensions {self.num_avg} != {self.accuracies.shape[1]}"
+        assert self._num_avg == self._accuracies.shape[1], (
+            f"Incorrect dimensions {self._num_avg} != {self._accuracies.shape[1]}"
         )
 
-        assert self.mat_shape[0] == self.test_row_nnzs.shape[2], (
-            f"Incorrect dimsinos: {self.mat_shape[0]} != {self.test_row_nnzs.shape[2]}"
+        assert self._mat_shape[0] == self._test_row_nnzs.shape[2], (
+            f"Incorrect dimsinos: {self._mat_shape[0]} != {self._test_row_nnzs.shape[2]}"
         )
-        assert self.mat_shape[0] == self.baseline_row_nnzs.shape[0], (
-            f"Incorrect dimsinos: {self.mat_shape[0]} != {self.baseline_row_nnzs.shape[0]}"
+        assert self._mat_shape[0] == self._baseline_row_nnzs.shape[0], (
+            f"Incorrect dimsinos: {self._mat_shape[0]} != {self._baseline_row_nnzs.shape[0]}"
         )
 
     def __load_results(self, file_id: int) -> None:
@@ -279,27 +279,27 @@ class AccWorkResult(Result):
 
         with open(path_json) as json_file:
             metadata = json.load(json_file)
-            self.mat_name = metadata["mat_name"]
-            self.mat_shape = metadata["mat_shape"]
-            self.is_sparse = metadata["is_sparse"]
-            self.matrix_norm = metadata["matrix_norm"]
-            self.baseline_nnz = metadata["baseline_nnz"]
-            self.max_iter = metadata["max_iter"]
-            self.tol = metadata["tol"]
-            self.seed = metadata["seed"]
-            self.num_avg = metadata["num_avg"]
-            self.trial_list = metadata["trial_list"]
-            self.notes = metadata["notes"]
-            self.reduct_type = ReductionType(metadata["reduct_type"])
+            self._mat_name = metadata["mat_name"]
+            self._mat_shape = metadata["mat_shape"]
+            self._is_sparse = metadata["is_sparse"]
+            self._matrix_norm = metadata["matrix_norm"]
+            self._baseline_nnz = metadata["baseline_nnz"]
+            self._max_iter = metadata["max_iter"]
+            self._tol = metadata["tol"]
+            self._seed = metadata["seed"]
+            self._num_avg = metadata["num_avg"]
+            self._trial_list = metadata["trial_list"]
+            self._notes = metadata["notes"]
+            self._reduct_type = ReductionType(metadata["reduct_type"])
 
         npzfile = np.load(path_npz)
 
-        self.test_run_iters = npzfile["test_run_iters"]
-        self.test_nnzs = npzfile["test_nnzs"]
-        self.test_row_nnzs = npzfile["test_row_nnzs"]
-        self.baseline_row_nnzs = npzfile["baseline_row_nnzs"]
-        self.baseline_accuracies = npzfile["baseline_accuracies"]
-        self.accuracies = npzfile["accuracies"]
+        self._test_run_iters = npzfile["test_run_iters"]
+        self._test_nnzs = npzfile["test_nnzs"]
+        self._test_row_nnzs = npzfile["test_row_nnzs"]
+        self._baseline_row_nnzs = npzfile["baseline_row_nnzs"]
+        self._baseline_accuracies = npzfile["baseline_accuracies"]
+        self._accuracies = npzfile["accuracies"]
 
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file
@@ -319,30 +319,30 @@ class AccWorkResult(Result):
         path_json, path_npz = self.get_paths(file_id)
 
         metadata = {
-            "mat_name": self.mat_name,
-            "mat_shape": self.mat_shape,
-            "is_sparse": self.is_sparse,
-            "matrix_norm": self.matrix_norm,
-            "baseline_nnz": self.baseline_nnz,
-            "max_iter": self.max_iter,
-            "tol": self.tol,
-            "seed": self.seed,
-            "num_avg": self.num_avg,
-            "trial_list": self.trial_list,
-            "reduct_type": self.reduct_type,
-            "notes": self.notes,
+            "mat_name": self._mat_name,
+            "mat_shape": self._mat_shape,
+            "is_sparse": self._is_sparse,
+            "matrix_norm": self._matrix_norm,
+            "baseline_nnz": self._baseline_nnz,
+            "max_iter": self._max_iter,
+            "tol": self._tol,
+            "seed": self._seed,
+            "num_avg": self._num_avg,
+            "trial_list": self._trial_list,
+            "reduct_type": self._reduct_type,
+            "notes": self._notes,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
 
         np.savez(
             path_npz,
-            test_run_iters=self.test_run_iters,
-            test_nnzs=self.test_nnzs,
-            test_row_nnzs=self.test_row_nnzs,
-            baseline_row_nnzs=self.baseline_row_nnzs,
-            baseline_accuracies=self.baseline_accuracies,
-            accuracies=self.accuracies,
+            test_run_iters=self._test_run_iters,
+            test_nnzs=self._test_nnzs,
+            test_row_nnzs=self._test_row_nnzs,
+            baseline_row_nnzs=self._baseline_row_nnzs,
+            baseline_accuracies=self._baseline_accuracies,
+            accuracies=self._accuracies,
         )
 
         return file_id
@@ -366,22 +366,22 @@ class AccWorkResult(Result):
 
         base_reduct_type: ReductionType
 
-        match self.reduct_type:
+        match self._reduct_type:
             case ReductionType.AVG_AFTER | ReductionType.AVG_BEFORE:
                 base_reduct_type = ReductionType.NO_REDUCTION
             case ReductionType.SND_MOMENT_BINOMIAL | ReductionType.SND_MOMENT_NAIVE:
                 base_reduct_type = ReductionType.SND_MOM_NO_REDUCTION
             case _:
-                raise ValueError(f"Unexpected reduction type: {self.reduct_type}")
+                raise ValueError(f"Unexpected reduction type: {self._reduct_type}")
 
         work_calculator = WorkCalculator(
             reduct_type=base_reduct_type,
             is_distributed=is_distributed,
-            shape=self.mat_shape,
-            nnz=self.baseline_nnz,
-            row_nnzs=self.baseline_row_nnzs,
+            shape=self._mat_shape,
+            nnz=self._baseline_nnz,
+            row_nnzs=self._baseline_row_nnzs,
         )
-        base_ys = self.baseline_accuracies
+        base_ys = self._baseline_accuracies
         base_xs = work_calculator.calculate(num_iter=base_ys.shape[0])
 
         #        work_offset = base_xs[0] #TODO: init work tracking?
@@ -394,7 +394,7 @@ class AccWorkResult(Result):
         )
         try:
             base_ys = rel_residue(
-                max=self.matrix_norm,
+                max=self._matrix_norm,
                 xs=base_ys,
                 check_max=True,
             )
@@ -404,42 +404,42 @@ class AccWorkResult(Result):
             plt.close(fig)
             return
 
-        ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self.baseline_nnz}")
+        ax.plot(base_xs, base_ys, label=f"baseline, nnz = {self._baseline_nnz}")
 
-        num_avg = self.num_avg
+        num_avg = self._num_avg
 
-        for i, n_trials in enumerate(self.trial_list):
+        for i, n_trials in enumerate(self._trial_list):
             # Looping through Ns
 
             #            xs = self.work[i, :most_iter]
             ys_i = np.full(  # for averaging
-                (num_avg, self.accuracies.shape[2]),
+                (num_avg, self._accuracies.shape[2]),
                 np.nan,
             )
             xs_i = np.full(  # for averaging
-                (num_avg, self.accuracies.shape[2]),
+                (num_avg, self._accuracies.shape[2]),
                 np.nan,
             )
 
             for j in range(num_avg):
                 # Looping through the runs (for averaging purposes)
-                ys_temp = self.accuracies[i, j, : self.test_run_iters[i, j]]
-                ys_i[j, : self.test_run_iters[i, j]] = rel_residue(
-                    max=self.matrix_norm,
+                ys_temp = self._accuracies[i, j, : self._test_run_iters[i, j]]
+                ys_i[j, : self._test_run_iters[i, j]] = rel_residue(
+                    max=self._matrix_norm,
                     xs=ys_temp,
                     check_max=True,
                 )
 
                 work_calculator = WorkCalculator(
-                    reduct_type=self.reduct_type,
+                    reduct_type=self._reduct_type,
                     is_distributed=is_distributed,
-                    shape=self.mat_shape,
-                    nnz=self.test_nnzs[i][j],
-                    row_nnzs=self.test_row_nnzs[i][j],
+                    shape=self._mat_shape,
+                    nnz=self._test_nnzs[i][j],
+                    row_nnzs=self._test_row_nnzs[i][j],
                 )
-                xs_temp = work_calculator.calculate(num_iter=self.test_run_iters[i, j])
+                xs_temp = work_calculator.calculate(num_iter=self._test_run_iters[i, j])
                 # Scale to be between zero and one
-                xs_i[j, : self.test_run_iters[i, j]] = rel_value(
+                xs_i[j, : self._test_run_iters[i, j]] = rel_value(
                     max=total_base_work,
                     xs=xs_temp,
                     check_max=False,
@@ -447,16 +447,16 @@ class AccWorkResult(Result):
 
             ys = np.nanmean(ys_i, axis=0)
             xs = np.nanmean(xs_i, axis=0)
-            nnz = round(np.mean(self.test_nnzs[i]))
+            nnz = round(np.mean(self._test_nnzs[i]))
 
             sig_iter: int
             match run_length_type:
                 case 1:
-                    sig_iter = np.min(self.test_run_iters[i])
+                    sig_iter = np.min(self._test_run_iters[i])
                 case 2:
-                    sig_iter = round(np.median(self.test_run_iters[i]))
+                    sig_iter = round(np.median(self._test_run_iters[i]))
                 case 3:
-                    sig_iter = np.max(self.test_run_iters[i])
+                    sig_iter = np.max(self._test_run_iters[i])
                 case _:
                     raise ValueError(
                         f"Unexpected value for run_length_type: {run_length_type}"
@@ -471,23 +471,23 @@ class AccWorkResult(Result):
                 lbl = f"{n_trials} trials"
             ax.plot(xs, ys, label=f"{lbl}, nnz = {nnz}")
 
-        match self.reduct_type:
+        match self._reduct_type:
             case ReductionType.SND_MOMENT_BINOMIAL:
                 ax.set_title(
-                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs, 2nd Moment)"
+                    f"Work vs. Accuracy of Top Eigenvector ({self._mat_name}:"
+                    f"{self._mat_shape[0]}x{self._mat_shape[1]}, avg of {num_avg} runs, 2nd Moment)"
                 )
             case ReductionType.AVG_AFTER:
                 ax.set_title(
-                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs)"
+                    f"Work vs. Accuracy of Top Eigenvector ({self._mat_name}:"
+                    f"{self._mat_shape[0]}x{self._mat_shape[1]}, avg of {num_avg} runs)"
                 )
             case ReductionType.AVG_BEFORE:
                 ax.set_title(
-                    f"Work vs. Accuracy of Top Eigenvector ({self.mat_name}:"
-                    f"{self.mat_shape[0]}x{self.mat_shape[1]}, avg of {num_avg} runs, 1st Moment)"
+                    f"Work vs. Accuracy of Top Eigenvector ({self._mat_name}:"
+                    f"{self._mat_shape[0]}x{self._mat_shape[1]}, avg of {num_avg} runs, 1st Moment)"
                 )
-        match self.reduct_type:
+        match self._reduct_type:
             case ReductionType.SND_MOMENT_BINOMIAL:
                 ax.set_ylabel(r"$\frac{|A^TA| - |A^TA\tilde v_1|}{|A^TA|}$", rotation=0)
             case ReductionType.AVG_AFTER | ReductionType.AVG_BEFORE:
