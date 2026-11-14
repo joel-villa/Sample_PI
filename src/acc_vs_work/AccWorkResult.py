@@ -301,6 +301,38 @@ class AccWorkResult(Result):
         self._baseline_accuracies = npzfile["baseline_accuracies"]
         self._accuracies = npzfile["accuracies"]
 
+    @property
+    def mat_name(self) -> str:
+        """Get the name of the matrix
+
+        Returns:
+             mat_name (str): The name of this matrix
+        """
+        return self._mat_name
+    @property
+    def trial_list(self) -> list[int]:
+        """Get the trial list for this test
+
+        Returns:
+             trial_list (list[int]): The number of binomial trials used for
+             this test
+
+        Resources:
+            - Read only class variables:
+                https://www.geeksforgeeks.org/python/read-only-properties-in-python/
+        """
+        return self._trial_list
+    @property
+    def test_row_nnzs(self) -> np.ndarray:
+        """Get the number of nonzeros per row per binomial trial count of this
+        test
+
+        Returns:
+             test_row_nnzs (np.ndarray): The number of nonzeros per row per
+             binomial trial count of this test
+	    """
+        return self._test_row_nnzs
+
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file
 
