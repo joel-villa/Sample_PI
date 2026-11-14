@@ -32,15 +32,15 @@ class SSGetter(MatGetter):
     """
 
     TOP_MAG_PATH = Path("data/top_row_mags.json")
-    format: SparseFormat
-    nzbounds: tuple[int, int] | None
-    limit: int | None
-    rowbounds: tuple[int, int] | None
-    colbounds: tuple[int, int] | None
-    isspd: bool | None
-    dtype: str | None
-    group: str | None
-    kind: str | None
+    _format: SparseFormat
+    _nzbounds: tuple[int, int] | None
+    _limit: int | None
+    _rowbounds: tuple[int, int] | None
+    _colbounds: tuple[int, int] | None
+    _isspd: bool | None
+    _dtype: str | None
+    _group: str | None
+    _kind: str | None
 
     mat_queue: Queue
 
@@ -72,16 +72,16 @@ class SSGetter(MatGetter):
         if dtype is not None and dtype not in {"real", "complex", "binary"}:
             warn(f"Likely an erroneous dtype: {dtype}")
 
-        self.format = format
-        self.limit = limit
-        self.nzbounds = nzbounds
-        self.rowbounds = rowbounds
-        self.colbounds = colbounds
-        self.isspd = isspd
-        self.dtype = dtype
-        self.dtype = dtype
-        self.group = group
-        self.kind = kind
+        self._format = format
+        self._limit = limit
+        self._nzbounds = nzbounds
+        self._rowbounds = rowbounds
+        self._colbounds = colbounds
+        self._isspd = isspd
+        self._dtype = dtype
+        self._dtype = dtype
+        self._group = group
+        self._kind = kind
 
         self.mat_queue = Queue()
 
@@ -135,24 +135,24 @@ class SSGetter(MatGetter):
             matrix (scipy.sparse.sparray): The matrix to check
         """
 
-        if (self.nzbounds is not None) and (matrix.nnz < self.nzbounds[0] or matrix.nnz > self.nzbounds[1]):
-            warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self.nzbounds}")
-        if (self.rowbounds is not None) and (
-            matrix.rows < self.rowbounds[0] or matrix.rows > self.rowbounds[1]
+        if (self._nzbounds is not None) and (matrix.nnz < self._nzbounds[0] or matrix.nnz > self._nzbounds[1]):
+            warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self._nzbounds}")
+        if (self._rowbounds is not None) and (
+            matrix.rows < self._rowbounds[0] or matrix.rows > self._rowbounds[1]
         ):
-            warn(f"matrix.shape={matrix.shape}, out of bounds: {self.rowbounds}")
-        if (self.colbounds is not None) and (
-            matrix.cols < self.colbounds[0] or matrix.cols > self.colbounds[1]
+            warn(f"matrix.shape={matrix.shape}, out of bounds: {self._rowbounds}")
+        if (self._colbounds is not None) and (
+            matrix.cols < self._colbounds[0] or matrix.cols > self._colbounds[1]
         ):
-            warn(f"matrix.shape={matrix.shape}, out of bounds: {self.colbounds}")
-        if self.isspd is not None and (self.isspd != matrix.isspd):
-            warn(f"Requested {self.isspd}, got {matrix.isspd}")
-        if self.dtype is not None and (self.dtype != matrix.dtype):
-            warn(f"Requested {self.dtype}, got {matrix.dtype}")
-        if self.group is not None and (self.group != matrix.group):
-            warn(f"Requested {self.group}, got {matrix.group}")
-        if self.kind is not None and (self.kind != matrix.kind):
-            warn(f"Requested {self.kind}, got {matrix.kind}")
+            warn(f"matrix.shape={matrix.shape}, out of bounds: {self._colbounds}")
+        if self._isspd is not None and (self._isspd != matrix.isspd):
+            warn(f"Requested {self._isspd}, got {matrix.isspd}")
+        if self._dtype is not None and (self._dtype != matrix.dtype):
+            warn(f"Requested {self._dtype}, got {matrix.dtype}")
+        if self._group is not None and (self._group != matrix.group):
+            warn(f"Requested {self._group}, got {matrix.group}")
+        if self._kind is not None and (self._kind != matrix.kind):
+            warn(f"Requested {self._kind}, got {matrix.kind}")
 
     def __get_ss_mat(
         self,
@@ -171,14 +171,14 @@ class SSGetter(MatGetter):
             if self.mat_queue.empty():
                 # empty queue -> get stuff using ssgetpy
                 ss_mats = ssgetpy.search(
-                    rowbounds=self.rowbounds,
-                    colbounds=self.colbounds,
-                    nzbounds=self.nzbounds,
-                    isspd=self.isspd,
-                    dtyp=self.dtype,
-                    group=self.group,
-                    kind=self.kind,
-                    limit=self.limit,
+                    rowbounds=self._rowbounds,
+                    colbounds=self._colbounds,
+                    nzbounds=self._nzbounds,
+                    isspd=self._isspd,
+                    dtyp=self._dtype,
+                    group=self._group,
+                    kind=self._kind,
+                    limit=self._limit,
                 )
                 for ss_mat in ss_mats:
                     self.mat_queue.put(
@@ -216,7 +216,7 @@ class SSGetter(MatGetter):
         if matrix is None:
             return None
 
-        match self.format:
+        match self._format:
             case SparseFormat.COO:
                 matrix = matrix.tocoo()
             case SparseFormat.CSC:
