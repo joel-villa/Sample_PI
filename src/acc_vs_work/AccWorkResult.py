@@ -110,6 +110,7 @@ class AccWorkResult(Result):
 
     _test_run_iters: np.ndarray
     _test_nnzs: np.ndarray
+    expected_nnzs: np.ndarray | None
     _test_row_nnzs: np.ndarray
     _baseline_row_nnzs: np.ndarray
     _baseline_accuracies: np.ndarray
@@ -134,6 +135,7 @@ class AccWorkResult(Result):
         notes: str | None = None,
         test_run_iters: np.ndarray | None = None,
         test_nnzs: np.ndarray | None = None,
+        expected_nnzs: np.ndarray | None = None,
         test_row_nnzs: np.ndarray | None = None,
         baseline_row_nnzs: np.ndarray | None = None,
         baseline_accuracies: np.ndarray | None = None,
@@ -163,6 +165,8 @@ class AccWorkResult(Result):
             every run of power
             test_nnzs (np.ndarray | None): The number of nonzeros of the 2nd
             moment approximation per trial
+            expected_nnzs (np.ndarray): The expected number of nonzeroes in
+            the generated matrix per binomial trial
             test_row_nnzs (np.ndarray | None): For work calculations, the
             number of nonzeroes per row is useful
             baseline_nnzs (np.ndarray | None): For baseline work calculations
@@ -209,6 +213,7 @@ class AccWorkResult(Result):
             self._seed = seed
             self._num_avg = num_avg
             self._trial_list = trial_list
+            self.expected_nnzs = expected_nnzs
             self._notes = notes
             self._test_run_iters = test_run_iters
             self._test_nnzs = test_nnzs
@@ -224,9 +229,6 @@ class AccWorkResult(Result):
             ReductionType.AVG_BEFORE,
             ReductionType.SND_MOMENT_BINOMIAL,
         }, f"Unexpected type: {self._reduct_type.name}"
-        #        assert self.baseline_accuracies.shape == self.baseline_work.shape, (
-        #            f"Incorrect dimensions {self.baseline_accuracies.shape} != {self.baseline_work.shape}"
-        #        )
 
         n_trials = len(self._trial_list)
         assert n_trials == self._test_run_iters.shape[0], (
@@ -238,12 +240,11 @@ class AccWorkResult(Result):
         assert n_trials == self._test_row_nnzs.shape[0], (
             f"Incorrect dimensions {n_trials} != {self._test_row_nnzs.shape[0]}"
         )
-        #        assert n_trials == self.work.shape[0], (
-        #            f"Incorrect dimensions {n_trials} != {self.work.shape[0]}"
-        #        )
         assert n_trials == self._accuracies.shape[0], (
             f"Incorrect dimensions {n_trials} != {self._accuracies.shape[0]}"
         )
+        if self.expected_nnzs is not None:
+            assert n_trials == self.expected_nnzs.shape[0], f"Incorrect dimensions {n_trials} != {self.expected_nnzs.shape[0]}"
 
         assert self._num_avg == self._test_run_iters.shape[1], (
             f"Incorrect dimensions {self._num_avg} != {self._accuracies.shape[1]}"
@@ -296,6 +297,12 @@ class AccWorkResult(Result):
 
         self._test_run_iters = npzfile["test_run_iters"]
         self._test_nnzs = npzfile["test_nnzs"]
+        try:
+            self.expected_nnzs = npzfile["expected_nnzs"]
+        except KeyError as e:
+            print(e)
+            self.expected_nnzs = None
+
         self._test_row_nnzs = npzfile["test_row_nnzs"]
         self._baseline_row_nnzs = npzfile["baseline_row_nnzs"]
         self._baseline_accuracies = npzfile["baseline_accuracies"]
@@ -322,16 +329,17 @@ class AccWorkResult(Result):
                 https://www.geeksforgeeks.org/python/read-only-properties-in-python/
         """
         return self._trial_list
-    @property
-    def test_row_nnzs(self) -> np.ndarray:
-        """Get the number of nonzeros per row per binomial trial count of this
-        test
-
-        Returns:
-             test_row_nnzs (np.ndarray): The number of nonzeros per row per
-             binomial trial count of this test
-	    """
-        return self._test_row_nnzs
+#    @property
+#    def test_row_nnzs(self) -> np.ndarray:
+#        """Get the number of nonzeros per row per binomial trial count of this
+#        test
+#
+#        Returns:
+#             test_row_nnzs (np.ndarray): The number of nonzeros per row per
+#             binomial trial count of this test (an m by n array, where m is
+#             the test count and n is the number of rows of the matrix)
+#	    """
+#        return np.mean(self.test_row_nnzs, axis=1)
 
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file
@@ -367,15 +375,27 @@ class AccWorkResult(Result):
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
 
-        np.savez(
-            path_npz,
-            test_run_iters=self._test_run_iters,
-            test_nnzs=self._test_nnzs,
-            test_row_nnzs=self._test_row_nnzs,
-            baseline_row_nnzs=self._baseline_row_nnzs,
-            baseline_accuracies=self._baseline_accuracies,
-            accuracies=self._accuracies,
-        )
+        if self.expected_nnzs is not None:
+            np.savez(
+                path_npz,
+                test_run_iters=self._test_run_iters,
+                test_nnzs=self._test_nnzs,
+                expected_nnzs=self.expected_nnzs,
+                test_row_nnzs=self._test_row_nnzs,
+                baseline_row_nnzs=self._baseline_row_nnzs,
+                baseline_accuracies=self._baseline_accuracies,
+                accuracies=self._accuracies,
+            )
+        else:
+            np.savez(
+                path_npz,
+                test_run_iters=self._test_run_iters,
+                test_nnzs=self._test_nnzs,
+                test_row_nnzs=self._test_row_nnzs,
+                baseline_row_nnzs=self._baseline_row_nnzs,
+                baseline_accuracies=self._baseline_accuracies,
+                accuracies=self._accuracies,
+            )
 
         return file_id
 
