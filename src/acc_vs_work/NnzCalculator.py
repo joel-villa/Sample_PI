@@ -48,7 +48,7 @@ class NnzCalculator:
 
         return 1 - prob_failure
 
-    def __calculate(
+    def __calculate_old(
         self,
         matrix: scipy.sparse.sparray,
         n_trials: int,
@@ -106,6 +106,53 @@ class NnzCalculator:
 
         # Expected number of nonzeroes is the sum of the probabilities (linearity of expectation!)
         return np.sum(probability_matrix[n_trials])
+
+
+    def __calculate(
+        self,
+        matrix: scipy.sparse.sparray,
+        n_trials: int,
+    ) -> float:
+        """Calculate the expected number of nonzeroes of the A^TA using the
+        sampling scheme on A
+
+        Args:
+            matrix (scipy.sparse.sparray): A sparse matrix (CSR format)
+            n_trials (int): Number of binomial trials to generate the matrix
+            approximation
+
+        Returns:
+             expected_nnz (float): The expected number of nonzeroes of the
+             approximation
+        Resources:
+            - Sparse array API:
+                https://docs.scipy.org/doc/scipy-1.18.0/reference/generated/scipy.sparse.csr_array.html#scipy.sparse.csr_array
+            - Sparse matrix element-wise multiplication:
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.multiply.html
+        """
+
+        square = matrix.T @ matrix
+
+        # Probability matrix is (n+1)xnxn
+        old_probs = scipy.sparse.csr_array((np.zeros_like(square.data), (square.indices, square.indptr)), shape=square.shape)
+        curr_probs = old_probs.copy()
+
+        magnitudiest = Approximator(matrix=matrix, rng=None)
+        row_magnitudes = magnitudiest.calc_row_norms()
+        for i in tqdm(range(1, matrix.shape[0])):
+            start_idx = matrix.indptr[i - 1]
+            end_idx = matrix.indptr[i]
+            curr_col_idxs = matrix.indices[start_idx:end_idx]
+
+            curr_prob_nz = self.__prob_at_least_one_success(n_trials=n_trials, prob_success=row_magnitudes[i])
+            ith_outer_prod = matrix[i].T @ matrix[i]
+            ith_probs = scipy.sparse.csr_array((np.full(ith_outer_prod.data, curr_prob_nz), (ith_outer_prod.indices, ith_outer_prod.indptr)), shape=ith_outer_prod.shape)
+
+            curr_probs = old_probs + ith_probs - old_probs.multiply(ith_probs)
+            old_probs = curr_probs
+
+        # Expected number of nonzeroes is the sum of the probabilities (linearity of expectation!)
+        return np.sum(curr_probs)
 
     def update_expected_nnzs(
         self,
