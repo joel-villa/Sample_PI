@@ -11,17 +11,28 @@ from src.util.constants import THIRTY_TWO_BIT_PRECISION
 class Approximator:
     """For generating approximations of a matrix"""
 
-    matrix: scipy.sparse.sparray
-    rng: np.random.Generator
+    _matrix: scipy.sparse.sparray
+    _rng: np.random.Generator | None
 
-    def __init__(self, matrix: scipy.sparse.sparray, rng: np.random.Generator) -> None:
+    def __init__(self, matrix: scipy.sparse.sparray, rng: np.random.Generator | None) -> None:
         """Initialize the approximator
 
         Args:
             matrix (scipy.sparse.sparray): Matrix to approximate
         """
-        self.matrix = matrix
-        self.rng = rng
+        self._matrix = matrix
+        self._rng = rng
+
+    def __get_rng(self) -> np.random.Generator:
+        """Get the random number generator, throw error if DNE
+
+        Returns:
+             rng (np.random.Generator): The random number generator
+	    """
+        if self._rng is None:
+            raise ValueError("Must provide random number generator to Approximator to generate approximations")
+        else:
+            return self._rng
 
     def __get_next_diagonal_sampler(
         self,
@@ -38,7 +49,7 @@ class Approximator:
             np.ndarray: The vector which represents a random diagonal sampling
             matrix
         """  # TODO
-        binomial_vals = self.rng.binomial(n=1, p=row_norms)
+        binomial_vals = self.__get_rng().binomial(n=1, p=row_norms)
         scaled_vals = binomial_vals / np.sqrt(row_norms)
 
         assert np.all(
@@ -95,7 +106,7 @@ class Approximator:
 
         return row_norms
 
-    def __get_row_norms(
+    def calc_row_norms(
         self,
     ) -> np.ndarray:
         """Get the row_norms of the given matrix
@@ -107,7 +118,7 @@ class Approximator:
             np.ndarray: The row magnitudes of every row in Af
         """
 
-        row_mags = np.asarray(scipy.sparse.linalg.norm(self.matrix, ord=2, axis=1))
+        row_mags = np.asarray(scipy.sparse.linalg.norm(self._matrix, ord=2, axis=1))
         row_mags = self.__round_row_norms(row_norms=row_mags)
         return row_mags
 
@@ -124,8 +135,8 @@ class Approximator:
                 scipy.sparse.csr_array: a zeros array
                 np.ndarray: the row_norms of A
         """
-        zeros = scipy.sparse.csr_array(self.matrix.shape)  # zeros sparse array
-        row_norms = self.__get_row_norms()
+        zeros = scipy.sparse.csr_array(self._matrix.shape)  # zeros sparse array
+        row_norms = self.calc_row_norms()
 
         return zeros, row_norms
 
@@ -144,7 +155,7 @@ class Approximator:
             diag_i = self.__get_diag_mat(
                 row_norms=row_norms,
             )
-            approximation += (1 / num_trials) * diag_i @ self.matrix
+            approximation += (1 / num_trials) * diag_i @ self._matrix
 
         return approximation
 
@@ -172,10 +183,10 @@ class Approximator:
             )
             approximation += (
                 (1 / num_trials)
-                * self.matrix.transpose()
+                * self._matrix.transpose()
                 @ diag_i
                 @ diag_i
-                @ self.matrix
+                @ self._matrix
             )
 
         return approximation
@@ -196,12 +207,12 @@ class Approximator:
         """
         approximation, row_norms = self.__init_generation()
 
-        for i in range(self.matrix.shape[0]):
+        for i in range(self._matrix.shape[0]):
             """Notice that everything that happens in this for loop is independent,
             i.e. parallizable"""
-            row_i = self.matrix[i, :]  # i'th row of A
+            row_i = self._matrix[i, :]  # i'th row of A
             norm_i = row_norms[i]  # magnitude of i'th row
-            binom = self.rng.binomial(
+            binom = self.__get_rng().binomial(
                 n=num_trials,
                 p=norm_i,  # w.p. ||a_j||, X_ij is one
             )
