@@ -5,3 +5,6 @@ __pycache__
 
 # An overleaf helper script
 to_overleaf.py
+
+# For testing small scripts
+test.py
