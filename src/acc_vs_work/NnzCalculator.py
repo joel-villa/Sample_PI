@@ -172,5 +172,5 @@ if __name__ == "__main__":
     """For testing purporses"""
     from src.acc_vs_work.util.ReductionType import ReductionType
 
-    main()
-    # main_1()
+    #main()
+    main_1()
