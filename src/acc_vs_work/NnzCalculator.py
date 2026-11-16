@@ -160,7 +160,7 @@ def main_1():
     """For testing"""
     file_id = 2
 
-    result = AccWorkResult(reduct_type=ReductionType.AVG_BEFORE, file_id=file_id)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id)
     nnz_calculator = NnzCalculator()
     nnz_calculator.update_expected_nnzs(result)
 
