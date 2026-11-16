@@ -244,7 +244,9 @@ class AccWorkResult(Result):
             f"Incorrect dimensions {n_trials} != {self._accuracies.shape[0]}"
         )
         if self.expected_nnzs is not None:
-            assert n_trials == self.expected_nnzs.shape[0], f"Incorrect dimensions {n_trials} != {self.expected_nnzs.shape[0]}"
+            assert n_trials == self.expected_nnzs.shape[0], (
+                f"Incorrect dimensions {n_trials} != {self.expected_nnzs.shape[0]}"
+            )
 
         assert self._num_avg == self._test_run_iters.shape[1], (
             f"Incorrect dimensions {self._num_avg} != {self._accuracies.shape[1]}"
@@ -316,6 +318,7 @@ class AccWorkResult(Result):
              mat_name (str): The name of this matrix
         """
         return self._mat_name
+
     @property
     def trial_list(self) -> list[int]:
         """Get the trial list for this test
@@ -329,17 +332,18 @@ class AccWorkResult(Result):
                 https://www.geeksforgeeks.org/python/read-only-properties-in-python/
         """
         return self._trial_list
-#    @property
-#    def test_row_nnzs(self) -> np.ndarray:
-#        """Get the number of nonzeros per row per binomial trial count of this
-#        test
-#
-#        Returns:
-#             test_row_nnzs (np.ndarray): The number of nonzeros per row per
-#             binomial trial count of this test (an m by n array, where m is
-#             the test count and n is the number of rows of the matrix)
-#	    """
-#        return np.mean(self.test_row_nnzs, axis=1)
+
+    #    @property
+    #    def test_row_nnzs(self) -> np.ndarray:
+    #        """Get the number of nonzeros per row per binomial trial count of this
+    #        test
+    #
+    #        Returns:
+    #             test_row_nnzs (np.ndarray): The number of nonzeros per row per
+    #             binomial trial count of this test (an m by n array, where m is
+    #             the test count and n is the number of rows of the matrix)
+    # 	    """
+    #        return np.mean(self.test_row_nnzs, axis=1)
 
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file

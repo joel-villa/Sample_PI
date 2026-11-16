@@ -135,7 +135,9 @@ class SSGetter(MatGetter):
             matrix (scipy.sparse.sparray): The matrix to check
         """
 
-        if (self._nzbounds is not None) and (matrix.nnz < self._nzbounds[0] or matrix.nnz > self._nzbounds[1]):
+        if (self._nzbounds is not None) and (
+            matrix.nnz < self._nzbounds[0] or matrix.nnz > self._nzbounds[1]
+        ):
             warn(f"matrix.nnz={matrix.nnz}, out of bounds: {self._nzbounds}")
         if (self._rowbounds is not None) and (
             matrix.rows < self._rowbounds[0] or matrix.rows > self._rowbounds[1]

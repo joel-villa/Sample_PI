@@ -14,7 +14,9 @@ class Approximator:
     _matrix: scipy.sparse.sparray
     _rng: np.random.Generator | None
 
-    def __init__(self, matrix: scipy.sparse.sparray, rng: np.random.Generator | None) -> None:
+    def __init__(
+        self, matrix: scipy.sparse.sparray, rng: np.random.Generator | None
+    ) -> None:
         """Initialize the approximator
 
         Args:
@@ -28,9 +30,11 @@ class Approximator:
 
         Returns:
              rng (np.random.Generator): The random number generator
-	    """
+        """
         if self._rng is None:
-            raise ValueError("Must provide random number generator to Approximator to generate approximations")
+            raise ValueError(
+                "Must provide random number generator to Approximator to generate approximations"
+            )
         else:
             return self._rng
 

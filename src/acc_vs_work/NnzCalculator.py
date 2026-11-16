@@ -19,8 +19,7 @@ class NnzCalculator:
     def __init__(
         self,
     ) -> None:
-        """Construct her...
-	    """
+        """Construct her..."""
         self._ss_getter = SSGetter(SparseFormat.CSR)
 
     def __prob_at_least_one_success(self, n_trials: int, prob_success: float) -> float:
@@ -38,11 +37,11 @@ class NnzCalculator:
         Resources:
             - Binomial distribution stuff:
                 https://medium.com/@ja_x/binomial-distribution-probability-mass-function-cumulative-distribution-function-calculation-5ae74fd3a340
-	    """
+        """
         probs = binom.pmf(
             k=np.arange(n_trials),
-            n=n_trials, # Number of trials
-            p=prob_success, # Probability of success
+            n=n_trials,  # Number of trials
+            p=prob_success,  # Probability of success
         )
 
         prob_failure = probs[0]
@@ -65,10 +64,12 @@ class NnzCalculator:
         Returns:
              expected_nnz (float): The expected number of nonzeroes of the
              approximation
-	    """
+        """
 
         # Probability matrix is (n+1)xnxn
-        probability_matrix = np.zeros((matrix.shape[0] + 1, matrix.shape[0], matrix.shape[0]), dtype=float)
+        probability_matrix = np.zeros(
+            (matrix.shape[0] + 1, matrix.shape[0], matrix.shape[0]), dtype=float
+        )
 
         magnitudiest = Approximator(matrix=matrix, rng=None)
         row_magnitudes = magnitudiest.calc_row_norms()
@@ -90,16 +91,21 @@ class NnzCalculator:
                         k_indicator = 1
 
                     old_prob_nz = probability_matrix[i - 1, j, k]
-                    curr_prob_nz =  j_indicator * k_indicator * self.__prob_at_least_one_success(
-                        n_trials=n_trials,
-                        prob_success=row_magnitudes[i],
+                    curr_prob_nz = (
+                        j_indicator
+                        * k_indicator
+                        * self.__prob_at_least_one_success(
+                            n_trials=n_trials,
+                            prob_success=row_magnitudes[i],
+                        )
                     )
 
-                    probability_matrix[i, j, k] = old_prob_nz + curr_prob_nz - (old_prob_nz * curr_prob_nz)
+                    probability_matrix[i, j, k] = (
+                        old_prob_nz + curr_prob_nz - (old_prob_nz * curr_prob_nz)
+                    )
 
         # Expected number of nonzeroes is the sum of the probabilities (linearity of expectation!)
         return np.sum(probability_matrix[n_trials])
-
 
     def update_expected_nnzs(
         self,
@@ -128,6 +134,7 @@ class NnzCalculator:
         result.expected_nnzs = expected_nnzs
         result.save_results()
 
+
 def main():
     """Nothing but a thang"""
     result_ids = range(1, 25)
@@ -148,6 +155,7 @@ def main():
             results = AccWorkResult(reduct_type=reduct_type, file_id=id)
             print(f"expected nnzs: {results.expected_nnzs}")
 
+
 def main_1():
     """For testing"""
     file_id = 2
@@ -160,9 +168,9 @@ def main_1():
     print(f"expected nnzs: {result.expected_nnzs}")
 
 
-
 if __name__ == "__main__":
     """For testing purporses"""
     from src.acc_vs_work.util.ReductionType import ReductionType
+
     main()
-    #main_1()
+    # main_1()
