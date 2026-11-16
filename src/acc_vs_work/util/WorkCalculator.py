@@ -1,9 +1,7 @@
 """For some repeated calculations (ex: work)"""
 
 import numpy as np
-import scipy
 
-from src.acc_vs_work.util import util
 from src.acc_vs_work.util.ReductionType import ReductionType
 
 
