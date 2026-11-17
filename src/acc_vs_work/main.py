@@ -12,30 +12,30 @@ from src.util.SparseFormat import SparseFormat
 def main():
     """Run that dang thang"""
     mats = [
-#        "1138_bus",
+        "1138_bus",
         "494_bus",
-#        "Harvard500",
-#        "bcspwr06",
-#        "bcsstk07",
-#        "bcsstk08",
-#        "bcsstk19",
-#        "bcsstk34",
-#        "bcsstm07",
-#        "blckhole",
-#        "cage7",
-#        "can_229",
-#        "dwt_193",
-#        "eris1176",
-#        "ex2",
-#        "fs_541_1",
-#        "gre_1107",
-#        "gre_343",
-#        "hor_131",
-#        "lshp1561",
-#        "msc00726",
-#        "nasa1824",
-#        "nos3",
-#        "tomography",
+        "Harvard500",
+        "bcspwr06",
+        "bcsstk07",
+        "bcsstk08",
+        "bcsstk19",
+        "bcsstk34",
+        "bcsstm07",
+        "blckhole",
+        "cage7",
+        "can_229",
+        "dwt_193",
+        "eris1176",
+        "ex2",
+        "fs_541_1",
+        "gre_1107",
+        "gre_343",
+        "hor_131",
+        "lshp1561",
+        "msc00726",
+        "nasa1824",
+        "nos3",
+        "tomography",
     ]
 
     mats = sorted(mats)  # Alphabetical order
@@ -43,7 +43,6 @@ def main():
     max_iter = 2**17  # 131, 072
     num_avg = 32
     seed = 7
-    is_distributed = False
 
     n_trials = [
         1,
@@ -54,11 +53,6 @@ def main():
         32,
         64,
     ]
-    #    n_trials = [
-    #        1,
-    #        2,
-    #        4,
-    #    ]
 
     ss_getter = SSGetter(
         format=SparseFormat.CSR,
