@@ -121,7 +121,7 @@ class AccWorkResult(Result):
 
     def __init__(
         self,
-        reduct_type: ReductionType,
+        reduct_type: ReductionType=ReductionType.SND_MOMENT_BINOMIAL,
         file_id: int | None = None,
         mat_name: str | None = None,
         is_sparse: bool | None = None,
