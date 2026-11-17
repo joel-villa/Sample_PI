@@ -121,7 +121,7 @@ class AccWorkResult(Result):
 
     def __init__(
         self,
-        reduct_type: ReductionType=ReductionType.SND_MOMENT_BINOMIAL,
+        reduct_type: ReductionType = ReductionType.SND_MOMENT_BINOMIAL,
         file_id: int | None = None,
         mat_name: str | None = None,
         is_sparse: bool | None = None,
@@ -561,7 +561,7 @@ class AccWorkResult(Result):
             #    plt.LogFormatterMathtext(base=10)
             # )
 
-        #print("Y-axis scale:", ax.get_yscale())
+        # print("Y-axis scale:", ax.get_yscale())
         ax.legend()
         fig.canvas.draw()
         plt.show()

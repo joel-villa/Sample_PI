@@ -4,7 +4,6 @@ from src.acc_vs_work.AccWorkResult import AccWorkResult
 from src.acc_vs_work.AccWorkTest import AccWorkTest
 from src.acc_vs_work.NnzCalculator import NnzCalculator
 from src.acc_vs_work.SSGetter import SSGetter
-from src.acc_vs_work.util.ReductionType import ReductionType
 from src.util.ResultType import ResultType
 from src.util.SparseFormat import SparseFormat
 
@@ -76,7 +75,6 @@ def main():
         run_length_type=2,
     )
 
-
     result_ids = range(1, len(mats) + 1)
 
     nnz_calculator = NnzCalculator()
@@ -85,6 +83,7 @@ def main():
         results = AccWorkResult(file_id=id)
         nnz_calculator.update_expected_nnzs(results)
         print(f"({id}) results.expected_nnz: {results.expected_nnzs}")
+
 
 if __name__ == "__main__":
     """For testing purporses"""

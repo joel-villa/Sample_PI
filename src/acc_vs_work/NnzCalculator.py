@@ -107,7 +107,6 @@ class NnzCalculator:
         # Expected number of nonzeroes is the sum of the probabilities (linearity of expectation!)
         return np.sum(probability_matrix[n_trials])
 
-
     def __calculate(
         self,
         matrix: scipy.sparse.sparray,
@@ -141,14 +140,18 @@ class NnzCalculator:
         magnitudiest = Approximator(matrix=matrix, rng=None)
         row_magnitudes = magnitudiest.calc_row_norms()
         for i in range(matrix.shape[0]):
-            curr_prob_nz = self.__prob_at_least_one_success(n_trials=n_trials, prob_success=row_magnitudes[i])
+            curr_prob_nz = self.__prob_at_least_one_success(
+                n_trials=n_trials, prob_success=row_magnitudes[i]
+            )
 
             # Only the outer product of the i'th row gets their probabilities updated
             ith_probs = matrix[i].T @ matrix[i]
             ith_probs.eliminate_zeros()
             ith_probs.data[:] = curr_prob_nz
 
-            assert ith_probs.nnz <= max_nnzs, f"{i}'th outer product has {ith_probs.nnz} nonzeros, max is {max_nnzs}"
+            assert ith_probs.nnz <= max_nnzs, (
+                f"{i}'th outer product has {ith_probs.nnz} nonzeros, max is {max_nnzs}"
+            )
 
             curr_probs = old_probs + ith_probs - old_probs.multiply(ith_probs)
             old_probs = curr_probs
@@ -195,19 +198,26 @@ def main():
     nnz_calculator = NnzCalculator()
 
     for id in result_ids:
-        results = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=id)
+        results = AccWorkResult(
+            reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=id
+        )
         nnz_calculator.update_expected_nnzs(results)
         print(f"({id}) results.expected_nnz: {results.expected_nnzs}")
+
 
 def main_1():
     """For testing"""
     file_id = 2
 
-    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id)
+    result = AccWorkResult(
+        reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id
+    )
     nnz_calculator = NnzCalculator()
     nnz_calculator.update_expected_nnzs(result)
 
-    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id)
+    result = AccWorkResult(
+        reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id
+    )
     print(f"expected nnzs: {result.expected_nnzs}")
 
 
@@ -216,4 +226,4 @@ if __name__ == "__main__":
     from src.acc_vs_work.util.ReductionType import ReductionType
 
     main()
-    #main_1()
+    # main_1()
