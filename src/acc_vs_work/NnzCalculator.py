@@ -129,30 +129,36 @@ class NnzCalculator:
                 https://docs.scipy.org/doc/scipy-1.18.0/reference/generated/scipy.sparse.csr_array.html#scipy.sparse.csr_array
             - Sparse matrix element-wise multiplication:
                 https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.multiply.html
+            - Numpy all
+                https://numpy.org/doc/2.2/reference/generated/numpy.all.html
         """
 
-        square = matrix.T @ matrix
-
-        # Probability matrix is (n+1)xnxn
-        old_probs = scipy.sparse.csr_array((np.zeros_like(square.data), (square.indices, square.indptr)), shape=square.shape)
-        curr_probs = old_probs.copy()
+        # Probability matrix is same shape as A^TA
+        old_probs = matrix.T @ matrix
+        max_nnzs = old_probs.nnz
+        old_probs.data[:] = 0
 
         magnitudiest = Approximator(matrix=matrix, rng=None)
         row_magnitudes = magnitudiest.calc_row_norms()
-        for i in tqdm(range(1, matrix.shape[0])):
-            start_idx = matrix.indptr[i - 1]
-            end_idx = matrix.indptr[i]
-            curr_col_idxs = matrix.indices[start_idx:end_idx]
-
+        for i in range(matrix.shape[0]):
             curr_prob_nz = self.__prob_at_least_one_success(n_trials=n_trials, prob_success=row_magnitudes[i])
-            ith_outer_prod = matrix[i].T @ matrix[i]
-            ith_probs = scipy.sparse.csr_array((np.full(ith_outer_prod.data, curr_prob_nz), (ith_outer_prod.indices, ith_outer_prod.indptr)), shape=ith_outer_prod.shape)
+
+            # Only the outer product of the i'th row gets their probabilities updated
+            ith_probs = matrix[i].T @ matrix[i]
+            ith_probs.eliminate_zeros()
+            ith_probs.data[:] = curr_prob_nz
+
+            assert ith_probs.nnz <= max_nnzs, f"{i}'th outer product has {ith_probs.nnz} nonzeros, max is {max_nnzs}"
 
             curr_probs = old_probs + ith_probs - old_probs.multiply(ith_probs)
             old_probs = curr_probs
 
+        old_probs.eliminate_zeros()
+
+        assert np.all(old_probs.data <= 1), f"huh? {np.max(old_probs.data)}"
+
         # Expected number of nonzeroes is the sum of the probabilities (linearity of expectation!)
-        return np.sum(curr_probs)
+        return np.sum(old_probs)
 
     def update_expected_nnzs(
         self,
@@ -184,24 +190,14 @@ class NnzCalculator:
 
 def main():
     """Nothing but a thang"""
-    result_ids = range(1, 25)
-
-    reduct_types = [
-        ReductionType.SND_MOMENT_BINOMIAL,
-        ReductionType.AVG_BEFORE,
-    ]
+    result_ids = range(2, 25)
 
     nnz_calculator = NnzCalculator()
 
     for id in result_ids:
-        for reduct_type in reduct_types:
-            results = AccWorkResult(reduct_type=reduct_type, file_id=id)
-            print(f"reduct_type: {reduct_type}, id: {id}")
-
-            nnz_calculator.update_expected_nnzs(results)
-            results = AccWorkResult(reduct_type=reduct_type, file_id=id)
-            print(f"expected nnzs: {results.expected_nnzs}")
-
+        results = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=id)
+        nnz_calculator.update_expected_nnzs(results)
+        print(f"({id}) results.expected_nnz: {results.expected_nnzs}")
 
 def main_1():
     """For testing"""
@@ -211,7 +207,7 @@ def main_1():
     nnz_calculator = NnzCalculator()
     nnz_calculator.update_expected_nnzs(result)
 
-    result = AccWorkResult(reduct_type=ReductionType.AVG_BEFORE, file_id=file_id)
+    result = AccWorkResult(reduct_type=ReductionType.SND_MOMENT_BINOMIAL, file_id=file_id)
     print(f"expected nnzs: {result.expected_nnzs}")
 
 
@@ -219,5 +215,5 @@ if __name__ == "__main__":
     """For testing purporses"""
     from src.acc_vs_work.util.ReductionType import ReductionType
 
-    #main()
-    main_1()
+    main()
+    #main_1()
