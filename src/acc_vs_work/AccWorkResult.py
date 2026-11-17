@@ -96,6 +96,7 @@ class AccWorkResult(Result):
 
     TEST_STRING: str = "acc_vs_work"
 
+    _file_id: int
     _mat_name: str
     _is_sparse: bool
     _baseline_nnz: int
@@ -180,6 +181,7 @@ class AccWorkResult(Result):
         super().__init__(f"{self.TEST_STRING}/{reduct_type}")
 
         if file_id:
+            self._file_id = file_id
             self.__load_results(file_id)
         else:
             if (
@@ -203,6 +205,8 @@ class AccWorkResult(Result):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
                 )
+
+            self._file_id = self.get_next_file_id()
             self._mat_name = mat_name
             self._mat_shape = mat_shape
             self._is_sparse = is_sparse
@@ -358,9 +362,7 @@ class AccWorkResult(Result):
             https://numpy.org/doc/stable/reference/generated/numpy.savez.html
             https://www.geeksforgeeks.org/python/how-to-convert-python-dictionary-to-json/
         """
-        file_id = self.get_next_file_id()
-
-        path_json, path_npz = self.get_paths(file_id)
+        path_json, path_npz = self.get_paths(self._file_id)
 
         metadata = {
             "mat_name": self._mat_name,
@@ -401,7 +403,7 @@ class AccWorkResult(Result):
                 accuracies=self._accuracies,
             )
 
-        return file_id
+        return self._file_id
 
     def display_results(
         self,
@@ -559,7 +561,7 @@ class AccWorkResult(Result):
             #    plt.LogFormatterMathtext(base=10)
             # )
 
-        print("Y-axis scale:", ax.get_yscale())
+        #print("Y-axis scale:", ax.get_yscale())
         ax.legend()
         fig.canvas.draw()
         plt.show()
